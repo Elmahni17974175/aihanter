@@ -1,0 +1,17 @@
+{
+  "name": "ai-handler-extension",
+  "version": "0.0.1",
+  "description": "Extension MakeCode: AI Handler (DaDa:bit + WonderCam) - suivi de ligne + détection couleur ID1 + prise + dépôt + demi-tour",
+  "dependencies": {
+    "core": "*",
+    "radio": "*",
+    "dadabit": "github:Hiwonder/DADABIT",
+    "wondercam": "github:Hiwonder/WonderCam"
+  },
+  "files": [
+    "main.ts"
+  ],
+  "testFiles": [],
+  "public": true,
+  "license": "MIT"
+}
