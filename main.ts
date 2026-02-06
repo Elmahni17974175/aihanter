@@ -1,21 +1,28 @@
 /**
  * ============================================================
  * AI Handler – Extension MakeCode (DaDa:bit + WonderCam)
- * - Mouvements simples paramétrés (vitesse)
- * - Mouvements avancés : suivi de ligne Option B (3 vitesses), demi-tour
- * - Vision : détection couleur ID (fiable) + approche
- * - Manipulation : attraper / déposer
- * - Cycle complet : 1 bloc "cycle (1 tour)"
+ * Version avec blocs DISSOCIÉS (pédagogique)
+ *
+ * Groupes :
+ * - Initialisation (blocs simples séparés)
+ * - Réglages Vision (séparés)
+ * - Réglages Vitesses
+ * - Capteurs
+ * - Mouvements simples (paramétrés)
+ * - Mouvements avancés (suivi ligne Option B, demi-tour)
+ * - Vision (détection fiable, approche)
+ * - Manipulation (attraper / déposer)
+ * - Cycle complet (bloc prêt à l'emploi)
  * ============================================================
  */
 
 //% color=#00bcd4 icon="\uf1b9" block="AI Handler"
-//% groups='["Initialisation","Réglages","Capteurs","Mouvements simples","Mouvements avancés","Vision","Manipulation","Cycle complet"]'
+//% groups='["Initialisation","Réglages vision","Réglages vitesses","Capteurs","Mouvements simples","Mouvements avancés","Vision","Manipulation","Cycle complet"]'
 namespace aihandler {
 
-    // -------------------------
-    // États internes
-    // -------------------------
+    // ============================================================
+    // ÉTAT INTERNE
+    // ============================================================
     let c1 = false
     let c2 = false
     let c3 = false
@@ -24,93 +31,163 @@ namespace aihandler {
     let porteObjet = false
     let compteurDetection = 0
 
-    // -------------------------
-    // Paramètres par défaut (projet AI Handler)
-    // -------------------------
+    // ============================================================
+    // PARAMÈTRES (par défaut = projet AI Handler)
+    // ============================================================
     let idCouleur = 1
+
+    // Fenêtre de vision (X) + distance (Y)
     let xMin = 80
     let xMax = 240
     let yApproche = 237
+
+    // Stabilité détection
     let validations = 8
 
-    // Vitesses (Option B)
+    // Vitesses Option B (suivi de ligne)
     let vToutDroit = 55
     let vCorrection = 44
     let vPetit = 33
 
-    // Servo bras
+    // Servos bras/pince
     let servoBras = 5
     let servoPince = 6
 
-    // -------------------------
-    // Outils internes
-    // -------------------------
-    function arretInterne(): void {
+    // Flag : initialisation faite ?
+    let estInitialise = false
+
+    // ============================================================
+    // OUTILS INTERNES
+    // ============================================================
+    function arreterMoteursInterne(): void {
         dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, 0)
         dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, 0)
         dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, 0)
         dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, 0)
     }
 
+    function assurerInit(): void {
+        if (!estInitialise) {
+            // Initialisation minimale si l’élève a oublié le bloc "initialiser"
+            dadabit.dadabit_init()
+            wondercam.wondercam_init(wondercam.DEV_ADDR.x32)
+            wondercam.ChangeFunc(wondercam.Functions.ColorDetect)
+            estInitialise = true
+        }
+    }
+
     // ============================================================
-    // INITIALISATION
+    // INITIALISATION (BLOCS DISSOCIÉS)
     // ============================================================
 
     /**
-     * Initialise DaDa:bit + WonderCam (mode détection de couleur)
-     * et place le bras en position de départ.
+     * Initialise le robot (DaDa:bit + WonderCam en mode détection de couleur).
+     * À mettre au démarrage.
      */
     //% group="Initialisation"
-    //% blockId=aihandler_init
-    //% block="initialiser AI Handler | couleur ID %id | servo bras %sBras | servo pince %sPince"
-    //% id.defl=1
-    //% sBras.defl=5 sPince.defl=6
-    export function initialiser(id: number = 1, sBras: number = 5, sPince: number = 6): void {
+    //% blockId=aihandler_init_simple
+    //% block="initialiser AI Handler"
+    export function initialiserAIHandler(): void {
         dadabit.dadabit_init()
         wondercam.wondercam_init(wondercam.DEV_ADDR.x32)
         wondercam.ChangeFunc(wondercam.Functions.ColorDetect)
 
+        porteObjet = false
+        compteurDetection = 0
+        estInitialise = true
+    }
+
+    /**
+     * Définir l’ID de la couleur à détecter (ex: 1).
+     */
+    //% group="Initialisation"
+    //% blockId=aihandler_definir_couleur_id
+    //% block="définir couleur à détecter ID %id"
+    //% id.defl=1
+    export function definirCouleurID(id: number = 1): void {
         idCouleur = id
+    }
+
+    /**
+     * Définir les ports des servos du bras.
+     */
+    //% group="Initialisation"
+    //% blockId=aihandler_definir_servos_bras
+    //% block="définir servos du bras | servo bras %sBras | servo pince %sPince"
+    //% sBras.defl=5 sPince.defl=6
+    export function definirServosBras(sBras: number = 5, sPince: number = 6): void {
         servoBras = sBras
         servoPince = sPince
+    }
 
-        // Position initiale du bras (comme le projet)
+    /**
+     * Placer le bras en position de départ (comme le projet).
+     */
+    //% group="Initialisation"
+    //% blockId=aihandler_position_depart_bras
+    //% block="position de départ du bras"
+    export function positionDepartBras(): void {
+        assurerInit()
         dadabit.setLego270Servo(servoBras, -60, 300)
         dadabit.setLego270Servo(servoPince, 15, 300)
         basic.pause(500)
-
-        porteObjet = false
-        compteurDetection = 0
     }
 
     // ============================================================
-    // RÉGLAGES
+    // RÉGLAGES VISION (BLOCS DISSOCIÉS)
     // ============================================================
 
     /**
-     * Réglages de la vision : fenêtre X, distance d’approche (Y), nombre de validations.
+     * Définir la zone horizontale de vision (X min / X max).
+     * L’objet doit être “devant” le robot.
      */
-    //% group="Réglages"
-    //% blockId=aihandler_regler_vision
-    //% block="régler vision | X min %xmin X max %xmax | Y approche %y | validations %n"
-    //% xmin.defl=80 xmax.defl=240 y.defl=237 n.defl=8
-    export function reglerVision(xmin: number = 80, xmax: number = 240, y: number = 237, n: number = 8): void {
+    //% group="Réglages vision"
+    //% blockId=aihandler_definir_zone_x
+    //% block="définir zone de vision horizontale | X min %xmin | X max %xmax"
+    //% xmin.defl=80 xmax.defl=240
+    export function definirZoneVisionX(xmin: number = 80, xmax: number = 240): void {
         xMin = xmin
         xMax = xmax
+    }
+
+    /**
+     * Définir la distance d’approche (Y).
+     * Plus la valeur est grande, plus l’objet est “proche” sur l’écran.
+     */
+    //% group="Réglages vision"
+    //% blockId=aihandler_definir_y_approche
+    //% block="définir distance d’approche | Y approche %y"
+    //% y.defl=237
+    export function definirDistanceApproche(y: number = 237): void {
         yApproche = y
+    }
+
+    /**
+     * Définir la stabilité de détection (nombre de validations).
+     * Exemple: 8 = il faut voir ID plusieurs fois pour éviter les erreurs.
+     */
+    //% group="Réglages vision"
+    //% blockId=aihandler_definir_validations
+    //% block="définir stabilité de détection | validations %n"
+    //% n.defl=8
+    export function definirStabiliteDetection(n: number = 8): void {
         validations = n
     }
 
+    // ============================================================
+    // RÉGLAGES VITESSES
+    // ============================================================
+
     /**
-     * Réglages des vitesses (Option B).
+     * Régler les vitesses du suivi de ligne (Option B).
      */
-    //% group="Réglages"
-    //% blockId=aihandler_regler_vitesses
-    //% block="régler vitesses | tout droit %vd | correction %vc | petit ajustement %vp"
+    //% group="Réglages vitesses"
+    //% blockId=aihandler_regler_vitesses_suivi
+    //% block="régler vitesses de suivi | tout droit %vd | correction %vc | petit ajustement %vp"
     //% vd.min=0 vd.max=100 vd.defl=55
     //% vc.min=0 vc.max=100 vc.defl=44
     //% vp.min=0 vp.max=100 vp.defl=33
-    export function reglerVitesses(vd: number = 55, vc: number = 44, vp: number = 33): void {
+    export function reglerVitessesSuivi(vd: number = 55, vc: number = 44, vp: number = 33): void {
         vToutDroit = vd
         vCorrection = vc
         vPetit = vp
@@ -121,12 +198,13 @@ namespace aihandler {
     // ============================================================
 
     /**
-     * Mettre à jour : caméra WonderCam + capteurs de ligne.
+     * Mettre à jour : résultats caméra + capteurs de ligne.
      */
     //% group="Capteurs"
     //% blockId=aihandler_mettre_a_jour
     //% block="mettre à jour (caméra + ligne)"
     export function mettreAJour(): void {
+        assurerInit()
         wondercam.UpdateResult()
         c1 = dadabit.line_followers(dadabit.LineFollowerSensors.S1, dadabit.LineColor.Black)
         c2 = dadabit.line_followers(dadabit.LineFollowerSensors.S2, dadabit.LineColor.Black)
@@ -135,7 +213,7 @@ namespace aihandler {
     }
 
     /**
-     * Arrivée destination : les 4 capteurs détectent la ligne noire.
+     * Arrivé à destination ? (4 capteurs sur la ligne noire)
      */
     //% group="Capteurs"
     //% blockId=aihandler_arrive_destination
@@ -145,7 +223,7 @@ namespace aihandler {
     }
 
     /**
-     * Le robot porte un objet ?
+     * Porte un objet ?
      */
     //% group="Capteurs"
     //% blockId=aihandler_porte_objet
@@ -165,7 +243,7 @@ namespace aihandler {
     //% blockId=aihandler_arreter
     //% block="arrêter le robot"
     export function arreter(): void {
-        arretInterne()
+        arreterMoteursInterne()
     }
 
     /**
@@ -176,7 +254,6 @@ namespace aihandler {
     //% block="avancer vitesse %v"
     //% v.min=0 v.max=100 v.defl=55
     export function avancer(v: number = 55): void {
-        // Même sens que "tout droit" du projet
         dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
         dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
         dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
@@ -191,7 +268,6 @@ namespace aihandler {
     //% block="reculer vitesse %v"
     //% v.min=0 v.max=100 v.defl=44
     export function reculer(v: number = 44): void {
-        // Inverse de "avancer"
         dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
         dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
         dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, v)
@@ -206,7 +282,7 @@ namespace aihandler {
     //% block="tourner à gauche vitesse %v"
     //% v.min=0 v.max=100 v.defl=44
     export function tournerGauche(v: number = 44): void {
-        // Comme le projet : "ajuster à gauche" = les 4 servos en Clockwise
+        // Comme le projet : correction gauche = 4 servos en Clockwise
         dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
         dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
         dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, v)
@@ -221,7 +297,7 @@ namespace aihandler {
     //% block="tourner à droite vitesse %v"
     //% v.min=0 v.max=100 v.defl=44
     export function tournerDroite(v: number = 44): void {
-        // Comme le projet : "ajuster à droite" = les 4 servos en Counterclockwise
+        // Comme le projet : correction droite = 4 servos en Counterclockwise
         dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
         dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
         dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
@@ -241,7 +317,7 @@ namespace aihandler {
             tournerDroite(v)
             mettreAJour()
         }
-        arretInterne()
+        arreterMoteursInterne()
     }
 
     // ============================================================
@@ -249,7 +325,7 @@ namespace aihandler {
     // ============================================================
 
     /**
-     * Suivre la ligne – Option B (3 vitesses).
+     * Suivre la ligne (Option B) – vitesses données en paramètres.
      */
     //% group="Mouvements avancés"
     //% blockId=aihandler_suivre_ligne_param
@@ -259,48 +335,50 @@ namespace aihandler {
     //% vp.min=0 vp.max=100 vp.defl=33
     export function suivreLigneParam(vd: number = 55, vc: number = 44, vp: number = 33): void {
 
-        // Tout droit
         if (c2 && c3) {
+            // Tout droit
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vd)
             dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vd)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vd)
             dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vd)
 
-        // Ligne à gauche
         } else if (c1 && c2 && (!c3 && !c4)) {
+            // Correction gauche
             dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, vc)
             dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vc)
             dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, vc)
             dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vc)
 
-        // Ligne à droite
         } else if (c3 && c4 && (!c1 && !c2)) {
+            // Correction droite
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vc)
             dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, vc)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vc)
             dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, vc)
 
-        // Petit ajustement gauche/droite
         } else if (c2 && !c1 && (!c3 && !c4)) {
+            // Petit ajustement (éviter dérive)
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vc)
             dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vp)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vc)
             dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vp)
 
         } else if (c3 && !c1 && (!c2 && !c4)) {
+            // Petit ajustement (éviter dérive)
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vp)
             dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vc)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vp)
             dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vc)
 
-        // Cas extrêmes (un bord)
         } else if (c1 && !c2 && (!c3 && !c4)) {
+            // Bord extrême gauche
             dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, vd)
             dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vd)
             dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, vd)
             dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vd)
 
         } else if (c4 && !c1 && (!c2 && !c3)) {
+            // Bord extrême droite
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vd)
             dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, vd)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vd)
@@ -309,7 +387,7 @@ namespace aihandler {
     }
 
     /**
-     * Suivre la ligne avec les vitesses enregistrées (pratique).
+     * Suivre la ligne (avec vitesses réglées).
      */
     //% group="Mouvements avancés"
     //% blockId=aihandler_suivre_ligne_auto
@@ -319,7 +397,7 @@ namespace aihandler {
     }
 
     /**
-     * Demi-tour (paramétré) : tourner jusqu’à retrouver la ligne (logique du projet).
+     * Faire demi-tour (paramétré) : tourner jusqu’à retrouver la ligne.
      */
     //% group="Mouvements avancés"
     //% blockId=aihandler_demi_tour
@@ -334,12 +412,12 @@ namespace aihandler {
         dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
         basic.pause(500)
 
-        // Tourner jusqu’à ce que (c3 ET c4) soient sur la ligne et que les autres ne gênent plus
+        // Tourner jusqu’à retrouver (c3 et c4) sur la ligne
         while (c1 || c2 || !(c3 && c4)) {
             tournerDroite(v)
             mettreAJour()
         }
-        arretInterne()
+        arreterMoteursInterne()
     }
 
     // ============================================================
@@ -347,7 +425,7 @@ namespace aihandler {
     // ============================================================
 
     /**
-     * Détection fiable de la couleur ID (validation + fenêtre X).
+     * Couleur détectée de façon fiable ? (validation + fenêtre X)
      */
     //% group="Vision"
     //% blockId=aihandler_couleur_fiable
@@ -366,12 +444,13 @@ namespace aihandler {
     }
 
     /**
-     * Approcher l’objet : suivre la ligne jusqu’à être proche (Y) ou disparition de l’objet.
+     * Approcher l’objet détecté : suivre la ligne jusqu’à être proche (Y) ou disparition.
      */
     //% group="Vision"
     //% blockId=aihandler_approcher_objet
     //% block="approcher l’objet détecté"
     export function approcherObjet(): void {
+        // Bip
         music.play(music.tonePlayable(262, music.beat(BeatFraction.Whole)), music.PlaybackMode.UntilDone)
 
         while (
@@ -394,7 +473,7 @@ namespace aihandler {
     //% blockId=aihandler_attraper
     //% block="attraper l’objet"
     export function attraperObjet(): void {
-        arretInterne()
+        arreterMoteursInterne()
         basic.pause(500)
 
         dadabit.setLego270Servo(servoBras, -5, 500)
@@ -415,7 +494,7 @@ namespace aihandler {
     //% blockId=aihandler_deposer
     //% block="déposer l’objet"
     export function deposerObjet(): void {
-        arretInterne()
+        arreterMoteursInterne()
         basic.pause(500)
 
         dadabit.setLego270Servo(servoBras, -5, 500)
@@ -433,24 +512,23 @@ namespace aihandler {
     // ============================================================
 
     /**
-     * Exécute un tour complet du comportement AI Handler.
-     * À utiliser dans "toujours" pour la version facile.
+     * Cycle AI Handler (1 tour) :
+     * - mettre à jour + suivre la ligne
+     * - si objet ID détecté (fiable) et robot libre -> approcher + attraper
+     * - si robot porte objet et destination atteinte -> déposer + demi-tour
      */
     //% group="Cycle complet"
     //% blockId=aihandler_cycle
     //% block="cycle AI Handler (1 tour)"
     export function cycle(): void {
-        // 1) Mise à jour + suivi de ligne
         mettreAJour()
         suivreLigneAuto()
 
-        // 2) Si on ne porte rien : détecter -> approcher -> attraper
         if (!porteObjet && couleurDetecteeFiable()) {
             approcherObjet()
             attraperObjet()
         }
 
-        // 3) Si on porte un objet : destination -> déposer -> demi-tour
         if (porteObjet && arriveDestination()) {
             deposerObjet()
             demiTour(vCorrection)
