@@ -1,30 +1,29 @@
 # Documentation – AI Handler
 
-## Blocs disponibles
-### Initialisation
-- initialiser AI Handler
-- régler paramètres (X min/max, Y approche, validations)
-- régler vitesses
+## Objectif
+Réaliser un robot qui :
+1) suit une ligne noire,
+2) détecte une couleur (ID),
+3) s’approche et attrape l’objet,
+4) va à destination,
+5) dépose l’objet,
+6) fait demi-tour et recommence.
 
-### Capteurs
-- mettre à jour (caméra + ligne)
-- arrivé à destination ?
-- porte un objet ?
+## Conseils
+- Utiliser une piste noire sur fond clair.
+- Bonne lumière pour la WonderCam.
+- Éviter les couleurs de fond proches de la couleur apprise.
 
-### Mouvements
-- suivre la ligne
-- faire demi-tour
+## Utilisation conseillée (en classe)
+### Niveau débutant
+- Au démarrage : initialiser AI Handler
+- Toujours : cycle AI Handler (1 tour)
 
-### Vision
-- couleur ID détectée de façon fiable ?
-- approcher l’objet détecté
+### Niveau intermédiaire
+- Réglages : vision + vitesses
+- Toujours : mettre à jour + suivre la ligne (vitesses réglées)
+- Conditions : détecter -> approcher -> attraper / destination -> déposer -> demi-tour
 
-### Manipulation
-- attraper l’objet
-- déposer l’objet
-
-### Cycle complet
-- cycle AI Handler (1 tour)
-
-## Utilisation recommandée
-Dans `toujours`, appeler seulement `cycle AI Handler (1 tour)`.
+## Mouvements simples vs avancés
+- **Simples** : avancer, reculer, tourner, trouver la ligne (avec vitesse)
+- **Avancés** : suivre la ligne Option B (3 vitesses) + demi-tour
