@@ -1,6 +1,6 @@
 {
   "name": "ai-handler-extension",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Extension MakeCode (DaDa:bit + WonderCam) : suivi de ligne + détection couleur ID + approche + prise + dépôt + demi-tour.",
   "dependencies": {
     "core": "*",
