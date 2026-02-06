@@ -1,13 +1,14 @@
 {
   "name": "ai-handler-extension",
-  "version": "0.1.10",
-  "description": "AI Handler: ligne + camera (safe).",
+  "version": "0.1.7",
+  "description": "AI Handler: mouvements + suivi ligne + fonctions camera via dependance dadabit.",
   "dependencies": {
     "core": "*",
-    "dadabit": "github:Hiwonder/dadabit",
-    "wondercam": "github:Hiwonder/wondercam"
+    "dadabit": "github:Hiwonder/dadabit"
   },
-  "files": ["main.ts"],
+  "files": [
+    "main.ts"
+  ],
   "public": true,
   "license": "MIT"
 }
