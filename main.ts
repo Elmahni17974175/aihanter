@@ -1,25 +1,45 @@
 //% color=#00bcd4 icon="\uf1b9" block="AI Handler"
-//% groups='["Initialisation","Capteurs","Mouvements simples","Mouvements avances","Vision reglages","Vision actions"]'
+//% groups='["Initialisation","Capteurs","Mouvements simples","Mouvements avances","Vision actions","Manipulation"]'
 namespace aihandler {
 
-    // --------- etat ligne ---------
+    // =========================================================
+    // ETAT LIGNE
+    // =========================================================
     let s1 = false
     let s2 = false
     let s3 = false
     let s4 = false
 
-    // --------- vitesses Option B ---------
+    // =========================================================
+    // VITESSES (Option B)
+    // =========================================================
     let vToutDroit = 55
     let vCorrection = 44
     let vPetit = 33
 
-    // --------- camera (via dependance dadabit) ---------
+    // =========================================================
+    // CAMERA (via dependance dadabit)
+    // =========================================================
     let camInit = false
     let idCouleur = 1
-
-    // Reglages vision (on les garde, meme si X/Y dependront d'une future etape)
     let validations = 8
     let compteurDetection = 0
+
+    // =========================================================
+    // SERVOS (bras + pince)
+    // =========================================================
+    let servoBras = 5
+    let servoPince = 6
+    let porteObjet = false
+
+    let brasHaut = -60
+    let brasBas = -5
+    let pinceOuverte = 15
+    let pinceFermee = -25
+
+    // =========================================================
+    // INITIALISATION
+    // =========================================================
 
     //% group="Initialisation"
     //% blockId=aihandler_init
@@ -31,14 +51,54 @@ namespace aihandler {
     //% group="Initialisation"
     //% blockId=aihandler_set_speeds
     //% block="regler vitesses suivi tout droit %vd correction %vc petit ajustement %vp"
-    //% vd.min=0 vd.max=100 vd.defl=55
-    //% vc.min=0 vc.max=100 vc.defl=44
-    //% vp.min=0 vp.max=100 vp.defl=33
-    export function reglerVitessesSuivi(vd: number = 55, vc: number = 44, vp: number = 33): void {
+    //% vd.defl=55 vc.defl=44 vp.defl=33
+    export function reglerVitessesSuivi(vd: number, vc: number, vp: number): void {
         vToutDroit = vd
         vCorrection = vc
         vPetit = vp
     }
+
+    //% group="Initialisation"
+    //% blockId=aihandler_cam_init
+    //% block="initialiser camera"
+    export function initialiserCamera(): void {
+        wondercam.wondercam_init(wondercam.DEV_ADDR.x32)
+        wondercam.ChangeFunc(wondercam.Functions.ColorDetect)
+        camInit = true
+        compteurDetection = 0
+    }
+
+    //% group="Initialisation"
+    //% blockId=aihandler_set_color
+    //% block="definir ID couleur %id"
+    //% id.defl=1
+    export function definirCouleurID(id: number): void {
+        idCouleur = id
+        compteurDetection = 0
+    }
+
+    //% group="Initialisation"
+    //% blockId=aihandler_set_servos
+    //% block="definir servos bras %bras pince %pince"
+    //% bras.defl=5 pince.defl=6
+    export function definirServosBras(bras: number, pince: number): void {
+        servoBras = bras
+        servoPince = pince
+    }
+
+    //% group="Initialisation"
+    //% blockId=aihandler_arm_home
+    //% block="position depart bras"
+    export function positionDepartBras(): void {
+        dadabit.setLego270Servo(servoBras, brasHaut, 300)
+        dadabit.setLego270Servo(servoPince, pinceOuverte, 300)
+        basic.pause(500)
+        porteObjet = false
+    }
+
+    // =========================================================
+    // CAPTEURS
+    // =========================================================
 
     //% group="Capteurs"
     //% blockId=aihandler_update_line
@@ -51,11 +111,24 @@ namespace aihandler {
     }
 
     //% group="Capteurs"
+    //% blockId=aihandler_update_camera
+    //% block="mettre a jour camera"
+    export function mettreAJourCamera(): void {
+        if (camInit) {
+            wondercam.UpdateResult()
+        }
+    }
+
+    //% group="Capteurs"
     //% blockId=aihandler_destination
     //% block="arrive a destination"
     export function arriveDestination(): boolean {
-        return (s1 && s2 && s3 && s4)
+        return s1 && s2 && s3 && s4
     }
+
+    // =========================================================
+    // MOUVEMENTS SIMPLES
+    // =========================================================
 
     //% group="Mouvements simples"
     //% blockId=aihandler_stop
@@ -70,123 +143,90 @@ namespace aihandler {
     //% group="Mouvements simples"
     //% blockId=aihandler_avancer
     //% block="avancer vitesse %v"
-    //% v.min=0 v.max=100 v.defl=80
-    export function avancer(v: number = 80): void {
+    //% v.defl=80
+    export function avancer(v: number): void {
         dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
         dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
         dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
         dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v)
     }
 
-    //% group="Mouvements simples"
-    //% blockId=aihandler_reculer
-    //% block="reculer vitesse %v"
-    //% v.min=0 v.max=100 v.defl=55
-    export function reculer(v: number = 55): void {
-        dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
-    }
-
-    //% group="Mouvements simples"
-    //% blockId=aihandler_left
-    //% block="tourner a gauche vitesse %v"
-    //% v.min=0 v.max=100 v.defl=44
-    export function tournerGauche(v: number = 44): void {
-        dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v)
-    }
-
-    //% group="Mouvements simples"
-    //% blockId=aihandler_right
-    //% block="tourner a droite vitesse %v"
-    //% v.min=0 v.max=100 v.defl=44
-    export function tournerDroite(v: number = 44): void {
-        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
-    }
+    // =========================================================
+    // MOUVEMENTS AVANCES
+    // =========================================================
 
     //% group="Mouvements avances"
     //% blockId=aihandler_suivre_ligne
     //% block="suivre la ligne"
     export function suivreLigne(): void {
         if (s2 && s3) {
-            dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vToutDroit)
-            dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vToutDroit)
-            dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vToutDroit)
-            dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vToutDroit)
+            avancer(vToutDroit)
         } else if (s1 && s2 && (!s3 && !s4)) {
             tournerGauche(vCorrection)
         } else if (s3 && s4 && (!s1 && !s2)) {
             tournerDroite(vCorrection)
-        } else if (s2 && (!s1 && !s3 && !s4)) {
+        } else if (s2 && !s1 && !s3 && !s4) {
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vCorrection)
             dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vPetit)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vCorrection)
             dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vPetit)
-        } else if (s3 && (!s1 && !s2 && !s4)) {
+        } else if (s3 && !s1 && !s2 && !s4) {
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vPetit)
             dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vCorrection)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vPetit)
             dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vCorrection)
         }
     }
-    // =========================================================
-    // SERVOS (bras + pince) - Manipulation
-    // =========================================================
 
-    let servoBras = 5
-    let servoPince = 6
-    let porteObjet = false
-
-    // Angles par defaut (tu peux les modifier plus tard si besoin)
-    let brasHaut = -60
-    let brasBas = -5
-    let pinceOuverte = 15
-    let pinceFermee = -25
-
-    //% group="Initialisation"
-    //% blockId=aihandler_set_servos_arm
-    //% block="definir servos bras %sBras pince %sPince"
-    //% sBras.defl=5 sPince.defl=6
-    export function definirServosBras(sBras: number = 5, sPince: number = 6): void {
-        servoBras = sBras
-        servoPince = sPince
+    function tournerGauche(v: number): void {
+        dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
+        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, v)
+        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v)
     }
 
-    //% group="Initialisation"
-    //% blockId=aihandler_arm_home
-    //% block="position depart bras"
-    export function positionDepartBras(): void {
-        // bras en haut + pince ouverte
-        dadabit.setLego270Servo(servoBras, brasHaut, 300)
-        dadabit.setLego270Servo(servoPince, pinceOuverte, 300)
-        basic.pause(500)
-        porteObjet = false
+    function tournerDroite(v: number): void {
+        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
     }
+
+    // =========================================================
+    // VISION
+    // =========================================================
+
+    //% group="Vision actions"
+    //% blockId=aihandler_color_reliable
+    //% block="couleur detectee de facon fiable"
+    export function couleurDetecteeFiable(): boolean {
+        if (!camInit) return false
+
+        if (wondercam.isDetectedColorId(idCouleur)) {
+            compteurDetection += 1
+        } else {
+            compteurDetection = 0
+        }
+        return compteurDetection >= validations
+    }
+
+    // =========================================================
+    // MANIPULATION
+    // =========================================================
 
     //% group="Manipulation"
     //% blockId=aihandler_grab
     //% block="attraper objet"
     export function attraperObjet(): void {
-        // arret + sequence bras/pince (comme ton code d'origine)
         arreter()
         basic.pause(300)
 
-        // descendre bras
         dadabit.setLego270Servo(servoBras, brasBas, 500)
         basic.pause(600)
 
-        // fermer pince
         dadabit.setLego270Servo(servoPince, pinceFermee, 500)
         basic.pause(600)
 
-        // remonter bras
         dadabit.setLego270Servo(servoBras, brasHaut, 500)
         basic.pause(600)
 
@@ -200,15 +240,12 @@ namespace aihandler {
         arreter()
         basic.pause(300)
 
-        // descendre bras
         dadabit.setLego270Servo(servoBras, brasBas, 500)
         basic.pause(600)
 
-        // ouvrir pince
         dadabit.setLego270Servo(servoPince, pinceOuverte, 500)
         basic.pause(600)
 
-        // remonter bras
         dadabit.setLego270Servo(servoBras, brasHaut, 500)
         basic.pause(600)
 
@@ -220,69 +257,5 @@ namespace aihandler {
     //% block="porte un objet"
     export function porteUnObjet(): boolean {
         return porteObjet
-    }
-
-    // =========================================================
-    // CAMERA (WonderCam via dependance dadabit)
-    // =========================================================
-
-    //% group="Initialisation"
-    //% blockId=aihandler_cam_init
-    //% block="initialiser camera"
-    export function initialiserCamera(): void {
-        // WonderCam est importee via dadabit (pas besoin de dependance directe)
-        wondercam.wondercam_init(wondercam.DEV_ADDR.x32)
-        wondercam.ChangeFunc(wondercam.Functions.ColorDetect)
-        camInit = true
-        compteurDetection = 0
-    }
-
-    //% group="Vision reglages"
-    //% blockId=aihandler_cam_set_id
-    //% block="definir ID couleur %id"
-    //% id.defl=1
-    export function definirCouleurID(id: number = 1): void {
-        idCouleur = id
-        compteurDetection = 0
-    }
-
-    //% group="Vision reglages"
-    //% blockId=aihandler_cam_set_valid
-    //% block="definir validations %n"
-    //% n.defl=8
-    export function definirStabiliteDetection(n: number = 8): void {
-        validations = n
-        compteurDetection = 0
-    }
-
-    //% group="Capteurs"
-    //% blockId=aihandler_cam_update
-    //% block="mettre a jour camera"
-    export function mettreAJourCamera(): void {
-        if (camInit) {
-            wondercam.UpdateResult()
-        }
-    }
-
-    //% group="Vision actions"
-    //% blockId=aihandler_color_seen
-    //% block="couleur detectee"
-    export function couleurDetectee(): boolean {
-        if (!camInit) return false
-        return wondercam.isDetectedColorId(idCouleur)
-    }
-
-    //% group="Vision actions"
-    //% blockId=aihandler_color_reliable
-    //% block="couleur fiable"
-    export function couleurDetecteeFiable(): boolean {
-        if (!camInit) return false
-
-        if (wondercam.isDetectedColorId(idCouleur)) {
-            compteurDetection += 1
-        } else {
-            compteurDetection = 0
-        }
-        return compteurDetection > validations
     }
 }
