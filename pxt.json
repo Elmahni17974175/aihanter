@@ -1,15 +1,13 @@
 {
   "name": "ai-handler-extension",
-  "version": "0.1.9",
-  "description": "AI Handler: mouvements + suivi ligne + vision couleur (WonderCam).",
+  "version": "0.1.10",
+  "description": "AI Handler: ligne + camera (safe).",
   "dependencies": {
     "core": "*",
     "dadabit": "github:Hiwonder/dadabit",
-    
+    "wondercam": "github:Hiwonder/WonderCam"
   },
-  "files": [
-    "main.ts"
-  ],
+  "files": ["main.ts"],
   "public": true,
   "license": "MIT"
 }
