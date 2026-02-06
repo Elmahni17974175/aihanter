@@ -1,5 +1,5 @@
 //% color=#00bcd4 icon="\uf1b9" block="AI Handler"
-//% groups='["Initialisation","Capteurs","Mouvements simples","Mouvements avances","Vision reglages","Vision actions"]'
+//% groups='["Initialisation","Capteurs","Mouvements simples","Mouvements avances","Vision actions"]'
 namespace aihandler {
 
     // --------- etat ligne ---------
@@ -16,11 +16,6 @@ namespace aihandler {
     // --------- camera (WonderCam) ---------
     let camInit = false
     let idCouleur = 1
-    let xMin = 80
-    let xMax = 240
-    let yApproche = 237
-    let validations = 8
-    let compteurDetection = 0
 
     //% group="Initialisation"
     //% blockId=aihandler_init
@@ -138,9 +133,7 @@ namespace aihandler {
         }
     }
 
-    // =========================================================
-    // WONDERCAM - Initialisation + Reglages
-    // =========================================================
+    // ---------------- WonderCam SAFE ----------------
 
     //% group="Initialisation"
     //% blockId=aihandler_cam_init
@@ -149,47 +142,15 @@ namespace aihandler {
         wondercam.wondercam_init(wondercam.DEV_ADDR.x32)
         wondercam.ChangeFunc(wondercam.Functions.ColorDetect)
         camInit = true
-        compteurDetection = 0
     }
 
-    //% group="Vision reglages"
+    //% group="Vision actions"
     //% blockId=aihandler_cam_set_id
     //% block="definir ID couleur %id"
     //% id.defl=1
     export function definirCouleurID(id: number = 1): void {
         idCouleur = id
-        compteurDetection = 0
     }
-
-    //% group="Vision reglages"
-    //% blockId=aihandler_cam_set_x
-    //% block="definir zone X min %xmin X max %xmax"
-    //% xmin.defl=80 xmax.defl=240
-    export function definirZoneVisionX(xmin: number = 80, xmax: number = 240): void {
-        xMin = xmin
-        xMax = xmax
-    }
-
-    //% group="Vision reglages"
-    //% blockId=aihandler_cam_set_y
-    //% block="definir Y approche %y"
-    //% y.defl=237
-    export function definirDistanceApproche(y: number = 237): void {
-        yApproche = y
-    }
-
-    //% group="Vision reglages"
-    //% blockId=aihandler_cam_set_valid
-    //% block="definir validations %n"
-    //% n.defl=8
-    export function definirStabiliteDetection(n: number = 8): void {
-        validations = n
-        compteurDetection = 0
-    }
-
-    // =========================================================
-    // WONDERCAM - Actions simples
-    // =========================================================
 
     //% group="Capteurs"
     //% blockId=aihandler_cam_update
@@ -206,41 +167,5 @@ namespace aihandler {
     export function couleurDetectee(): boolean {
         if (!camInit) return false
         return wondercam.isDetectedColorId(idCouleur)
-    }
-
-    //% group="Vision actions"
-    //% blockId=aihandler_color_in_x
-    //% block="couleur dans zone X"
-    export function couleurDansZoneX(): boolean {
-        if (!camInit) return false
-        if (wondercam.isDetectedColorId(idCouleur)) {
-            let x = wondercam.XOfColorId(wondercam.Options.Pos_X, idCouleur)
-            return (x >= xMin && x <= xMax)
-        }
-        return false
-    }
-
-    //% group="Vision actions"
-    //% blockId=aihandler_color_reliable
-    //% block="couleur fiable"
-    export function couleurDetecteeFiable(): boolean {
-        if (couleurDansZoneX()) {
-            compteurDetection += 1
-        } else {
-            compteurDetection = 0
-        }
-        return compteurDetection > validations
-    }
-
-    //% group="Vision actions"
-    //% blockId=aihandler_object_close
-    //% block="objet proche"
-    export function objetProche(): boolean {
-        if (!camInit) return false
-        if (wondercam.isDetectedColorId(idCouleur)) {
-            let y = wondercam.XOfColorId(wondercam.Options.Pos_Y, idCouleur)
-            return y >= yApproche
-        }
-        return false
     }
 }
