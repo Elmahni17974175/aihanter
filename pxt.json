@@ -1,12 +1,11 @@
 {
   "name": "ai-handler-extension",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "AI Handler (base): mouvements simples DaDa:bit",
   "dependencies": {
     "core": "*",
     "dadabit": "github:Hiwonder/dadabit"
-    "wondercam": "github:Hiwonder/WonderCam"
-  },
+     },
   "files": [
     "main.ts"
   ],
