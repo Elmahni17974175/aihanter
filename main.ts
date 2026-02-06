@@ -1,5 +1,5 @@
 //% color=#00bcd4 icon="\uf1b9" block="AI Handler"
-//% groups='["Initialisation","Capteurs","Mouvements simples","Mouvements avances","Vision actions"]'
+//% groups='["Initialisation","Capteurs","Mouvements simples","Mouvements avances","Vision reglages","Vision actions"]'
 namespace aihandler {
 
     // --------- etat ligne ---------
@@ -13,9 +13,13 @@ namespace aihandler {
     let vCorrection = 44
     let vPetit = 33
 
-    // --------- camera (WonderCam) ---------
+    // --------- camera (via dependance dadabit) ---------
     let camInit = false
     let idCouleur = 1
+
+    // Reglages vision (on les garde, meme si X/Y dependront d'une future etape)
+    let validations = 8
+    let compteurDetection = 0
 
     //% group="Initialisation"
     //% blockId=aihandler_init
@@ -133,23 +137,37 @@ namespace aihandler {
         }
     }
 
-    // ---------------- WonderCam SAFE ----------------
+    // =========================================================
+    // CAMERA (WonderCam via dependance dadabit)
+    // =========================================================
 
     //% group="Initialisation"
     //% blockId=aihandler_cam_init
-    //% block="initialiser WonderCam"
-    export function initialiserWonderCam(): void {
+    //% block="initialiser camera"
+    export function initialiserCamera(): void {
+        // WonderCam est importee via dadabit (pas besoin de dependance directe)
         wondercam.wondercam_init(wondercam.DEV_ADDR.x32)
         wondercam.ChangeFunc(wondercam.Functions.ColorDetect)
         camInit = true
+        compteurDetection = 0
     }
 
-    //% group="Vision actions"
+    //% group="Vision reglages"
     //% blockId=aihandler_cam_set_id
     //% block="definir ID couleur %id"
     //% id.defl=1
     export function definirCouleurID(id: number = 1): void {
         idCouleur = id
+        compteurDetection = 0
+    }
+
+    //% group="Vision reglages"
+    //% blockId=aihandler_cam_set_valid
+    //% block="definir validations %n"
+    //% n.defl=8
+    export function definirStabiliteDetection(n: number = 8): void {
+        validations = n
+        compteurDetection = 0
     }
 
     //% group="Capteurs"
@@ -167,5 +185,19 @@ namespace aihandler {
     export function couleurDetectee(): boolean {
         if (!camInit) return false
         return wondercam.isDetectedColorId(idCouleur)
+    }
+
+    //% group="Vision actions"
+    //% blockId=aihandler_color_reliable
+    //% block="couleur fiable"
+    export function couleurDetecteeFiable(): boolean {
+        if (!camInit) return false
+
+        if (wondercam.isDetectedColorId(idCouleur)) {
+            compteurDetection += 1
+        } else {
+            compteurDetection = 0
+        }
+        return compteurDetection > validations
     }
 }
