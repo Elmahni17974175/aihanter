@@ -136,6 +136,91 @@ namespace aihandler {
             dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vCorrection)
         }
     }
+    // =========================================================
+    // SERVOS (bras + pince) - Manipulation
+    // =========================================================
+
+    let servoBras = 5
+    let servoPince = 6
+    let porteObjet = false
+
+    // Angles par defaut (tu peux les modifier plus tard si besoin)
+    let brasHaut = -60
+    let brasBas = -5
+    let pinceOuverte = 15
+    let pinceFermee = -25
+
+    //% group="Initialisation"
+    //% blockId=aihandler_set_servos_arm
+    //% block="definir servos bras %sBras pince %sPince"
+    //% sBras.defl=5 sPince.defl=6
+    export function definirServosBras(sBras: number = 5, sPince: number = 6): void {
+        servoBras = sBras
+        servoPince = sPince
+    }
+
+    //% group="Initialisation"
+    //% blockId=aihandler_arm_home
+    //% block="position depart bras"
+    export function positionDepartBras(): void {
+        // bras en haut + pince ouverte
+        dadabit.setLego270Servo(servoBras, brasHaut, 300)
+        dadabit.setLego270Servo(servoPince, pinceOuverte, 300)
+        basic.pause(500)
+        porteObjet = false
+    }
+
+    //% group="Manipulation"
+    //% blockId=aihandler_grab
+    //% block="attraper objet"
+    export function attraperObjet(): void {
+        // arret + sequence bras/pince (comme ton code d'origine)
+        arreter()
+        basic.pause(300)
+
+        // descendre bras
+        dadabit.setLego270Servo(servoBras, brasBas, 500)
+        basic.pause(600)
+
+        // fermer pince
+        dadabit.setLego270Servo(servoPince, pinceFermee, 500)
+        basic.pause(600)
+
+        // remonter bras
+        dadabit.setLego270Servo(servoBras, brasHaut, 500)
+        basic.pause(600)
+
+        porteObjet = true
+    }
+
+    //% group="Manipulation"
+    //% blockId=aihandler_drop
+    //% block="deposer objet"
+    export function deposerObjet(): void {
+        arreter()
+        basic.pause(300)
+
+        // descendre bras
+        dadabit.setLego270Servo(servoBras, brasBas, 500)
+        basic.pause(600)
+
+        // ouvrir pince
+        dadabit.setLego270Servo(servoPince, pinceOuverte, 500)
+        basic.pause(600)
+
+        // remonter bras
+        dadabit.setLego270Servo(servoBras, brasHaut, 500)
+        basic.pause(600)
+
+        porteObjet = false
+    }
+
+    //% group="Manipulation"
+    //% blockId=aihandler_has_object
+    //% block="porte un objet"
+    export function porteUnObjet(): boolean {
+        return porteObjet
+    }
 
     // =========================================================
     // CAMERA (WonderCam via dependance dadabit)
