@@ -1,6 +1,6 @@
 {
   "name": "ai-handler-extension",
-  "version": "0.1.4",
+  "version": "0.1.9",
   "description": "AI Handler: mouvements + suivi ligne + vision couleur (WonderCam).",
   "dependencies": {
     "core": "*",
