@@ -1,5 +1,5 @@
 //% color=#00bcd4 icon="\uf1b9" block="AI Handler"
-//% groups='["Initialisation","Vision reglages","Vitesses reglages","Capteurs","Mouvements simples","Mouvements avances","Vision actions"]'
+//% groups='["Initialisation","Capteurs","Mouvements simples","Mouvements avances","Vision reglages","Vision actions"]'
 namespace aihandler {
 
     // --------- etat ligne ---------
@@ -13,7 +13,8 @@ namespace aihandler {
     let vCorrection = 44
     let vPetit = 33
 
-    // --------- vision ---------
+    // --------- camera (WonderCam) ---------
+    let camInit = false
     let idCouleur = 1
     let xMin = 80
     let xMax = 240
@@ -21,71 +22,14 @@ namespace aihandler {
     let validations = 8
     let compteurDetection = 0
 
-    let camInit = false
-
-    // =========================================================
-    // INITIALISATION
-    // =========================================================
-
     //% group="Initialisation"
-    //% blockId=aihandler_init_dadabit
+    //% blockId=aihandler_init
     //% block="initialiser DaDa:bit"
     export function initialiserDadabit(): void {
         dadabit.dadabit_init()
     }
 
     //% group="Initialisation"
-    //% blockId=aihandler_init_wondercam
-    //% block="initialiser WonderCam"
-    export function initialiserWonderCam(): void {
-        wondercam.wondercam_init(wondercam.DEV_ADDR.x32)
-        wondercam.ChangeFunc(wondercam.Functions.ColorDetect)
-        camInit = true
-        compteurDetection = 0
-    }
-
-    //% group="Initialisation"
-    //% blockId=aihandler_set_color_id
-    //% block="definir couleur a detecter ID %id"
-    //% id.defl=1
-    export function definirCouleurID(id: number = 1): void {
-        idCouleur = id
-    }
-
-    // =========================================================
-    // REGLAGES VISION (dissocie)
-    // =========================================================
-
-    //% group="Vision reglages"
-    //% blockId=aihandler_set_vision_x
-    //% block="definir zone vision X min %xmin X max %xmax"
-    //% xmin.defl=80 xmax.defl=240
-    export function definirZoneVisionX(xmin: number = 80, xmax: number = 240): void {
-        xMin = xmin
-        xMax = xmax
-    }
-
-    //% group="Vision reglages"
-    //% blockId=aihandler_set_approach_y
-    //% block="definir distance approche Y %y"
-    //% y.defl=237
-    export function definirDistanceApproche(y: number = 237): void {
-        yApproche = y
-    }
-
-    //% group="Vision reglages"
-    //% blockId=aihandler_set_validations
-    //% block="definir stabilite detection validations %n"
-    //% n.defl=8
-    export function definirStabiliteDetection(n: number = 8): void {
-        validations = n
-    }
-
-    // =========================================================
-    // REGLAGES VITESSES (Option B)
-    // =========================================================
-
-    //% group="Vitesses reglages"
     //% blockId=aihandler_set_speeds
     //% block="regler vitesses suivi tout droit %vd correction %vc petit ajustement %vp"
     //% vd.min=0 vd.max=100 vd.defl=55
@@ -96,10 +40,6 @@ namespace aihandler {
         vCorrection = vc
         vPetit = vp
     }
-
-    // =========================================================
-    // CAPTEURS
-    // =========================================================
 
     //% group="Capteurs"
     //% blockId=aihandler_update_line
@@ -112,24 +52,11 @@ namespace aihandler {
     }
 
     //% group="Capteurs"
-    //% blockId=aihandler_update_camera
-    //% block="mettre a jour camera"
-    export function mettreAJourCamera(): void {
-        if (camInit) {
-            wondercam.UpdateResult()
-        }
-    }
-
-    //% group="Capteurs"
     //% blockId=aihandler_destination
     //% block="arrive a destination"
     export function arriveDestination(): boolean {
         return (s1 && s2 && s3 && s4)
     }
-
-    // =========================================================
-    // MOUVEMENTS SIMPLES
-    // =========================================================
 
     //% group="Mouvements simples"
     //% blockId=aihandler_stop
@@ -185,12 +112,8 @@ namespace aihandler {
         dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
     }
 
-    // =========================================================
-    // MOUVEMENTS AVANCES (suivi ligne)
-    // =========================================================
-
     //% group="Mouvements avances"
-    //% blockId=aihandler_follow_line
+    //% blockId=aihandler_suivre_ligne
     //% block="suivre la ligne"
     export function suivreLigne(): void {
         if (s2 && s3) {
@@ -216,11 +139,69 @@ namespace aihandler {
     }
 
     // =========================================================
-    // VISION ACTIONS (detection fiable)
+    // WONDERCAM - Initialisation + Reglages
     // =========================================================
 
+    //% group="Initialisation"
+    //% blockId=aihandler_cam_init
+    //% block="initialiser WonderCam"
+    export function initialiserWonderCam(): void {
+        wondercam.wondercam_init(wondercam.DEV_ADDR.x32)
+        wondercam.ChangeFunc(wondercam.Functions.ColorDetect)
+        camInit = true
+        compteurDetection = 0
+    }
+
+    //% group="Vision reglages"
+    //% blockId=aihandler_cam_set_id
+    //% block="definir ID couleur %id"
+    //% id.defl=1
+    export function definirCouleurID(id: number = 1): void {
+        idCouleur = id
+        compteurDetection = 0
+    }
+
+    //% group="Vision reglages"
+    //% blockId=aihandler_cam_set_x
+    //% block="definir zone X min %xmin X max %xmax"
+    //% xmin.defl=80 xmax.defl=240
+    export function definirZoneVisionX(xmin: number = 80, xmax: number = 240): void {
+        xMin = xmin
+        xMax = xmax
+    }
+
+    //% group="Vision reglages"
+    //% blockId=aihandler_cam_set_y
+    //% block="definir Y approche %y"
+    //% y.defl=237
+    export function definirDistanceApproche(y: number = 237): void {
+        yApproche = y
+    }
+
+    //% group="Vision reglages"
+    //% blockId=aihandler_cam_set_valid
+    //% block="definir validations %n"
+    //% n.defl=8
+    export function definirStabiliteDetection(n: number = 8): void {
+        validations = n
+        compteurDetection = 0
+    }
+
+    // =========================================================
+    // WONDERCAM - Actions simples
+    // =========================================================
+
+    //% group="Capteurs"
+    //% blockId=aihandler_cam_update
+    //% block="mettre a jour camera"
+    export function mettreAJourCamera(): void {
+        if (camInit) {
+            wondercam.UpdateResult()
+        }
+    }
+
     //% group="Vision actions"
-    //% blockId=aihandler_color_detected
+    //% blockId=aihandler_color_seen
     //% block="couleur detectee"
     export function couleurDetectee(): boolean {
         if (!camInit) return false
@@ -228,7 +209,7 @@ namespace aihandler {
     }
 
     //% group="Vision actions"
-    //% blockId=aihandler_color_in_center
+    //% blockId=aihandler_color_in_x
     //% block="couleur dans zone X"
     export function couleurDansZoneX(): boolean {
         if (!camInit) return false
@@ -241,7 +222,7 @@ namespace aihandler {
 
     //% group="Vision actions"
     //% blockId=aihandler_color_reliable
-    //% block="couleur detectee de facon fiable"
+    //% block="couleur fiable"
     export function couleurDetecteeFiable(): boolean {
         if (couleurDansZoneX()) {
             compteurDetection += 1
@@ -252,7 +233,7 @@ namespace aihandler {
     }
 
     //% group="Vision actions"
-    //% blockId=aihandler_is_close
+    //% blockId=aihandler_object_close
     //% block="objet proche"
     export function objetProche(): boolean {
         if (!camInit) return false
