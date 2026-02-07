@@ -1,4 +1,4 @@
-//% color=#00bcd4 icon="\uf1b9" block="AI Hanter" 
+//% color=#00bcd4 icon="\uf1b9" block="AI Hanter"
 //% groups='["Initialisation","Reglages","Capteurs ligne","Mouvements","Suivi de ligne","Manipulation","Cycle"]'
 namespace aihandler {
 
@@ -11,7 +11,7 @@ namespace aihandler {
     let capteur4 = false
 
     // =========================================================
-    // VITESSES (par defaut)
+    // VITESSES (par defaut : identiques au code qui marche)
     // =========================================================
     let vToutDroit = 55
     let vCorrection = 44
@@ -24,15 +24,22 @@ namespace aihandler {
     let servoPince = 6
     let porteObjet = false
 
-    // Angles (a adapter selon ton montage)
+    // Angles (a adapter selon montage)
     let brasHaut = -60
     let brasBas = -5
     let pinceOuverte = 15
     let pinceFermee = -25
 
     // =========================================================
-    // OUTILS MOTEURS (internes)
+    // OUTILS MOTEURS (internes) - BASE
     // =========================================================
+    function arreterInterne(): void {
+        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, 0)
+        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, 0)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, 0)
+        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, 0)
+    }
+
     function avancerInterne(v: number): void {
         dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
         dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
@@ -47,35 +54,12 @@ namespace aihandler {
         dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
     }
 
-    // Correction a gauche (différentiel)
-    function correctionGaucheInterne(v: number): void {
-        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v / 2)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v / 2)
-        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v)
-    }
-
-    // Correction a droite (différentiel)
-    function correctionDroiteInterne(v: number): void {
-        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v / 2)
-        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v / 2)
-    }
-
-    // Rotation sur place (moteurs opposés) : fiable
+    // Rotation sur place (pour demi-tour, fiable)
     function rotationSurPlaceDroiteInterne(v: number): void {
         dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
         dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
         dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, v)
         dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
-    }
-
-    function arreterInterne(): void {
-        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, 0)
-        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, 0)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, 0)
-        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, 0)
     }
 
     // =========================================================
@@ -90,7 +74,6 @@ namespace aihandler {
 
         servoBras = bras
         servoPince = pince
-
         porteObjet = false
 
         positionDepartBras()
@@ -142,7 +125,7 @@ namespace aihandler {
     }
 
     // =========================================================
-    // MOUVEMENTS
+    // MOUVEMENTS (blocs simples)
     // =========================================================
     //% group="Mouvements"
     //% blockId=aihanter_arreter
@@ -167,64 +150,66 @@ namespace aihandler {
         reculerInterne(v)
     }
 
-    //% group="Mouvements"
-    //% blockId=aihanter_tourner_gauche
-    //% block="tourner a gauche (correction) vitesse %v"
-    //% v.defl=44
-    export function tournerGauche(v: number = 44): void {
-        correctionGaucheInterne(v)
-    }
-
-    //% group="Mouvements"
-    //% blockId=aihanter_tourner_droite
-    //% block="tourner a droite (correction) vitesse %v"
-    //% v.defl=44
-    export function tournerDroite(v: number = 44): void {
-        correctionDroiteInterne(v)
-    }
-
     // =========================================================
-    // SUIVI DE LIGNE (corrige et robuste)
+    // SUIVI DE LIGNE (IDENTIQUE AU CODE QUI MARCHE)
     // =========================================================
     //% group="Suivi de ligne"
     //% blockId=aihanter_suivre_ligne
-    //% block="suivre la ligne (robuste)"
+    //% block="suivre la ligne (mode competition)"
     export function suivreLigne(): void {
         // IMPORTANT : appeler "mettre a jour les capteurs de ligne" avant
 
-        // Bien centre (S2 et S3 sur la ligne)
         if (capteur2 && capteur3) {
-            avancerInterne(vToutDroit)
+            // tout droit
+            dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vToutDroit)
+            dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vToutDroit)
+            dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vToutDroit)
+            dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vToutDroit)
 
-        // Ligne vers la gauche
-        } else if (capteur1 && capteur2) {
-            correctionGaucheInterne(vCorrection)
+        } else if (capteur1 && capteur2 && (!capteur3 && !capteur4)) {
+            // correction gauche (comme ton code : tous CW)
+            dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, vCorrection)
+            dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vCorrection)
+            dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, vCorrection)
+            dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vCorrection)
 
-        // Ligne vers la droite
-        } else if (capteur3 && capteur4) {
-            correctionDroiteInterne(vCorrection)
+        } else if (capteur3 && capteur4 && (!capteur1 && !capteur2)) {
+            // correction droite (comme ton code : tous CCW)
+            dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vCorrection)
+            dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, vCorrection)
+            dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vCorrection)
+            dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, vCorrection)
 
-        // Leger decalage a gauche (S2 seul)
-        } else if (capteur2 && !capteur1 && !capteur3 && !capteur4) {
-            correctionGaucheInterne(vPetit)
+        } else if (capteur2 && !capteur1 && (!capteur3 && !capteur4)) {
+            // petit ajustement (S2 seul)
+            dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vCorrection)
+            dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vPetit)
+            dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vCorrection)
+            dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vPetit)
 
-        // Leger decalage a droite (S3 seul)
-        } else if (capteur3 && !capteur1 && !capteur2 && !capteur4) {
-            correctionDroiteInterne(vPetit)
+        } else if (capteur3 && !capteur1 && (!capteur2 && !capteur4)) {
+            // petit ajustement (S3 seul)
+            dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vPetit)
+            dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vCorrection)
+            dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vPetit)
+            dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vCorrection)
 
-        // Fort decalage a gauche (S1 seul)
-        } else if (capteur1 && !capteur2 && !capteur3 && !capteur4) {
-            correctionGaucheInterne(vToutDroit)
+        } else if (capteur1 && !capteur2 && (!capteur3 && !capteur4)) {
+            // fort rattrapage gauche (S1 seul) : tous CW (comme ton code)
+            dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, vToutDroit)
+            dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vToutDroit)
+            dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, vToutDroit)
+            dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vToutDroit)
 
-        // Fort decalage a droite (S4 seul)
-        } else if (capteur4 && !capteur1 && !capteur2 && !capteur3) {
-            correctionDroiteInterne(vToutDroit)
-
-        // Ligne perdue (aucun capteur)
-        } else {
-            // strategie simple : avancer lentement pour retrouver
-            avancerInterne(vPetit)
+        } else if (capteur4 && !capteur1 && (!capteur2 && !capteur3)) {
+            // fort rattrapage droite (S4 seul) : tous CCW (comme ton code)
+            dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vToutDroit)
+            dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, vToutDroit)
+            dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vToutDroit)
+            dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, vToutDroit)
         }
+        // Remarque : ton code ne traite pas "aucun capteur"
+        // On respecte donc exactement ton comportement.
     }
 
     //% group="Suivi de ligne"
@@ -232,13 +217,13 @@ namespace aihandler {
     //% block="faire demi tour vitesse %v"
     //% v.defl=44
     export function demiTour(v: number = 44): void {
-        // rotation sur place puis recherche de ligne
+        // rotation sur place puis recherche ligne (style competition)
         rotationSurPlaceDroiteInterne(v)
         basic.pause(500)
 
         mettreAJourLigne()
         while (capteur1 || capteur2 || !(capteur3 && capteur4)) {
-            // comme le code reference : rotation continue
+            // comme reference : tous CCW pendant la recherche
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
             dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
