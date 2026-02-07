@@ -4,7 +4,7 @@ namespace aihandler {
     // ===============================
     // ETAT LIGNE (4 capteurs)
     // ===============================
-    let s1 = false
+    let s1 = false 
     let s2 = false
     let s3 = false
     let s4 = false
