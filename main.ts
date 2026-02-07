@@ -1,5 +1,5 @@
 //% color=#00bcd4 icon="\uf1b9" block="AI Hanter"
-//% groups='["Initialisation","Reglages","Capteurs ligne","Mouvements","Suivi de ligne","Manipulation","Cycle"]'
+//% groups='["Initialisation","Reglages","Capteurs ligne","Mouvements","Suivi de ligne","Manipulation","Macros (sans camera)","Cycle"]'
 namespace aihandler {
 
     // =========================================================
@@ -11,7 +11,7 @@ namespace aihandler {
     let capteur4 = false
 
     // =========================================================
-    // VITESSES (par defaut : identiques au code qui marche)
+    // VITESSES (par defaut)
     // =========================================================
     let vToutDroit = 55
     let vCorrection = 44
@@ -22,6 +22,8 @@ namespace aihandler {
     // =========================================================
     let servoBras = 5
     let servoPince = 6
+
+    // Etat interne (sans camera)
     let porteObjet = false
 
     // Angles (a adapter selon montage)
@@ -31,7 +33,7 @@ namespace aihandler {
     let pinceFermee = -25
 
     // =========================================================
-    // OUTILS MOTEURS (internes) - BASE
+    // OUTILS MOTEURS (internes)
     // =========================================================
     function arreterInterne(): void {
         dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, 0)
@@ -54,7 +56,6 @@ namespace aihandler {
         dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
     }
 
-    // Rotation sur place (pour demi-tour, fiable)
     function rotationSurPlaceDroiteInterne(v: number): void {
         dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
         dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
@@ -71,18 +72,13 @@ namespace aihandler {
     //% bras.defl=5 pince.defl=6
     export function initialiser(bras: number = 5, pince: number = 6): void {
         dadabit.dadabit_init()
-
         servoBras = bras
         servoPince = pince
         porteObjet = false
-
         positionDepartBras()
         arreterInterne()
     }
 
-    // =========================================================
-    // REGLAGES
-    // =========================================================
     //% group="Reglages"
     //% blockId=aihanter_regler_vitesses
     //% block="regler vitesses suivi tout droit %vd correction %vc petit %vp"
@@ -125,7 +121,7 @@ namespace aihandler {
     }
 
     // =========================================================
-    // MOUVEMENTS (blocs simples)
+    // MOUVEMENTS
     // =========================================================
     //% group="Mouvements"
     //% blockId=aihanter_arreter
@@ -157,59 +153,48 @@ namespace aihandler {
     //% blockId=aihanter_suivre_ligne
     //% block="suivre la ligne (mode competition)"
     export function suivreLigne(): void {
-        // IMPORTANT : appeler "mettre a jour les capteurs de ligne" avant
-
         if (capteur2 && capteur3) {
-            // tout droit
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vToutDroit)
             dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vToutDroit)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vToutDroit)
             dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vToutDroit)
 
         } else if (capteur1 && capteur2 && (!capteur3 && !capteur4)) {
-            // correction gauche (comme ton code : tous CW)
             dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, vCorrection)
             dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vCorrection)
             dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, vCorrection)
             dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vCorrection)
 
         } else if (capteur3 && capteur4 && (!capteur1 && !capteur2)) {
-            // correction droite (comme ton code : tous CCW)
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vCorrection)
             dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, vCorrection)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vCorrection)
             dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, vCorrection)
 
         } else if (capteur2 && !capteur1 && (!capteur3 && !capteur4)) {
-            // petit ajustement (S2 seul)
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vCorrection)
             dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vPetit)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vCorrection)
             dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vPetit)
 
         } else if (capteur3 && !capteur1 && (!capteur2 && !capteur4)) {
-            // petit ajustement (S3 seul)
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vPetit)
             dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vCorrection)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vPetit)
             dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vCorrection)
 
         } else if (capteur1 && !capteur2 && (!capteur3 && !capteur4)) {
-            // fort rattrapage gauche (S1 seul) : tous CW (comme ton code)
             dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, vToutDroit)
             dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vToutDroit)
             dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, vToutDroit)
             dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vToutDroit)
 
         } else if (capteur4 && !capteur1 && (!capteur2 && !capteur3)) {
-            // fort rattrapage droite (S4 seul) : tous CCW (comme ton code)
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vToutDroit)
             dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, vToutDroit)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vToutDroit)
             dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, vToutDroit)
         }
-        // Remarque : ton code ne traite pas "aucun capteur"
-        // On respecte donc exactement ton comportement.
     }
 
     //% group="Suivi de ligne"
@@ -217,13 +202,11 @@ namespace aihandler {
     //% block="faire demi tour vitesse %v"
     //% v.defl=44
     export function demiTour(v: number = 44): void {
-        // rotation sur place puis recherche ligne (style competition)
         rotationSurPlaceDroiteInterne(v)
         basic.pause(500)
 
         mettreAJourLigne()
         while (capteur1 || capteur2 || !(capteur3 && capteur4)) {
-            // comme reference : tous CCW pendant la recherche
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
             dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
@@ -292,6 +275,44 @@ namespace aihandler {
     }
 
     // =========================================================
+    // MACROS (SANS CAMERA) - pour simplifier le code eleve
+    // =========================================================
+
+    //% group="Macros (sans camera)"
+    //% blockId=aihanter_marquer_objet_porte
+    //% block="definir porte objet %etat"
+    export function definirPorteObjet(etat: boolean): void {
+        porteObjet = etat
+    }
+
+    //% group="Macros (sans camera)"
+    //% blockId=aihanter_objet_est_porte
+    //% block="objet est porte"
+    export function objetEstPorte(): boolean {
+        return porteObjet
+    }
+
+    //% group="Macros (sans camera)"
+    //% blockId=aihanter_bip_validation
+    //% block="bip validation"
+    export function bipValidation(): void {
+        music.play(music.tonePlayable(262, music.beat(BeatFraction.Whole)), music.PlaybackMode.UntilDone)
+    }
+
+    //% group="Macros (sans camera)"
+    //% blockId=aihanter_gerer_destination_sans_camera
+    //% block="si destination alors deposer puis demi tour vitesse %v"
+    //% v.defl=44
+    export function gererDestinationSansCamera(v: number = 44): void {
+        if (arriveDestination()) {
+            if (porteObjet) {
+                deposerObjet()
+            }
+            demiTour(v)
+        }
+    }
+
+    // =========================================================
     // CYCLE (sans camera)
     // =========================================================
     //% group="Cycle"
@@ -300,8 +321,6 @@ namespace aihandler {
     export function cycleSansCamera(): void {
         mettreAJourLigne()
         suivreLigne()
-
-        // Si on porte un objet et on arrive a la destination : deposer + demi-tour
         if (porteObjet && arriveDestination()) {
             deposerObjet()
             demiTour(vCorrection)
