@@ -1,4 +1,4 @@
-//% color=#00bcd4 icon="\uf1b9" block="AI Handler"
+//% color=#00bcd4 icon="\uf1b9" block="AI Hanter"
 //% groups='["Initialisation","Reglages IA","Capteurs","Mouvements simples","Mouvements avances","Manipulation","Actions IA","Cycle complet"]'
 namespace aihandler {
 
@@ -18,8 +18,7 @@ namespace aihandler {
     let vPetit = 33
 
     // =========================================================
-    // IA (cube couleur ID)
-    //  - camera WonderCam est utilisee en interne (pas de blocs WonderCam visibles)
+    // IA (cube couleur ID) - WonderCam originale (mise a jour externe)
     // =========================================================
     let camInit = false
     let idCouleur = 1
@@ -43,7 +42,7 @@ namespace aihandler {
     let pinceFermee = -25
 
     // =========================================================
-    // OUTILS INTERNES
+    // OUTILS INTERNES (moteurs)
     // =========================================================
     function tournerGauche(v: number): void {
         dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
@@ -59,30 +58,28 @@ namespace aihandler {
         dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
     }
 
+    // =========================================================
+    // CAMERA : init minimal (pas de UpdateResult ici !)
+    // L'eleve utilise WonderCam original : "Update and get results"
+    // =========================================================
     function initCameraInterne(): void {
         if (!camInit) {
-            // WonderCam est importee indirectement via dadabit (pas besoin de dependance directe)
+            // safe : ne casse pas, mais l'eleve peut aussi init via blocs WonderCam
             wondercam.wondercam_init(wondercam.DEV_ADDR.x32)
-            wondercam.ChangeFunc(wondercam.Functions.ColorDetect)
+            // on force la detection de couleur (si dispo)
+            wondercam.SwitchFunc(wondercam.Functions.ColorDetect)
             camInit = true
             compteurDetection = 0
         }
     }
 
-    function majCameraInterne(): void {
-        if (camInit) {
-            wondercam.UpdateResult()
-        }
-    }
-
+    // Lecture officielle (souvent dispo sur WonderCam originale)
     function lireXCouleur(): number {
-        // Variante la plus compatible (sans Options.*)
-        return wondercam.XOfColorId(idCouleur)
+        return wondercam.XOfColorId(wondercam.Options.Pos_X, idCouleur)
     }
 
     function lireYCouleur(): number {
-        // Variante la plus compatible (sans Options.*)
-        return wondercam.YOfColorId(idCouleur)
+        return wondercam.YOfColorId(wondercam.Options.Pos_Y, idCouleur)
     }
 
     // =========================================================
@@ -91,7 +88,7 @@ namespace aihandler {
 
     //% group="Initialisation"
     //% blockId=aihandler_init_all
-    //% block="initialiser AI Handler (ID %id) bras %bras pince %pince"
+    //% block="initialiser AI Hanter (ID %id) bras %bras pince %pince"
     //% id.defl=1 bras.defl=5 pince.defl=6
     export function initialiserAIHandler(id: number = 1, bras: number = 5, pince: number = 6): void {
         dadabit.dadabit_init()
@@ -144,16 +141,13 @@ namespace aihandler {
     }
 
     // =========================================================
-    // CAPTEURS
+    // CAPTEURS (ligne seulement)
     // =========================================================
 
     //% group="Capteurs"
-    //% blockId=aihandler_update_all
-    //% block="mettre a jour (ligne + IA)"
-    export function mettreAJour(): void {
-        initCameraInterne()
-        majCameraInterne()
-
+    //% blockId=aihandler_update_line
+    //% block="mettre a jour ligne"
+    export function mettreAJourLigne(): void {
         s1 = dadabit.line_followers(dadabit.LineFollowerSensors.S1, dadabit.LineColor.Black)
         s2 = dadabit.line_followers(dadabit.LineFollowerSensors.S2, dadabit.LineColor.Black)
         s3 = dadabit.line_followers(dadabit.LineFollowerSensors.S3, dadabit.LineColor.Black)
@@ -210,22 +204,6 @@ namespace aihandler {
         dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
     }
 
-    //% group="Mouvements simples"
-    //% blockId=aihandler_tourner_gauche
-    //% block="tourner gauche vitesse %v"
-    //% v.defl=44
-    export function tournerGaucheBloc(v: number): void {
-        tournerGauche(v)
-    }
-
-    //% group="Mouvements simples"
-    //% blockId=aihandler_tourner_droite
-    //% block="tourner droite vitesse %v"
-    //% v.defl=44
-    export function tournerDroiteBloc(v: number): void {
-        tournerDroite(v)
-    }
-
     // =========================================================
     // MOUVEMENTS AVANCES
     // =========================================================
@@ -258,36 +236,24 @@ namespace aihandler {
     //% block="faire demi tour vitesse %v"
     //% v.defl=44
     export function demiTour(v: number = 44): void {
-        mettreAJour()
-        reculer(0) // inertie minimale
+        mettreAJourLigne()
 
-        // rotation sur place (meme logique que ton ancien code)
         dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
         dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
         dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, v)
         dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
         basic.pause(500)
 
-        // retrouver la ligne: on tourne jusqu'a avoir s3 et s4 sur ligne
         while (s1 || s2 || !(s3 && s4)) {
             tournerDroite(v)
-            mettreAJour()
+            mettreAJourLigne()
         }
         arreter()
     }
 
     // =========================================================
-    // MANIPULATION (bras/pince)
+    // MANIPULATION
     // =========================================================
-
-    //% group="Manipulation"
-    //% blockId=aihandler_set_servos
-    //% block="definir servos bras %bras pince %pince"
-    //% bras.defl=5 pince.defl=6
-    export function definirServosBras(bras: number = 5, pince: number = 6): void {
-        servoBras = bras
-        servoPince = pince
-    }
 
     //% group="Manipulation"
     //% blockId=aihandler_arm_home
@@ -305,16 +271,12 @@ namespace aihandler {
     export function attraperObjet(): void {
         arreter()
         basic.pause(300)
-
         dadabit.setLego270Servo(servoBras, brasBas, 500)
         basic.pause(600)
-
         dadabit.setLego270Servo(servoPince, pinceFermee, 500)
         basic.pause(600)
-
         dadabit.setLego270Servo(servoBras, brasHaut, 500)
         basic.pause(600)
-
         porteObjet = true
     }
 
@@ -324,21 +286,17 @@ namespace aihandler {
     export function deposerObjet(): void {
         arreter()
         basic.pause(300)
-
         dadabit.setLego270Servo(servoBras, brasBas, 500)
         basic.pause(600)
-
         dadabit.setLego270Servo(servoPince, pinceOuverte, 500)
         basic.pause(600)
-
         dadabit.setLego270Servo(servoBras, brasHaut, 500)
         basic.pause(600)
-
         porteObjet = false
     }
 
     // =========================================================
-    // ACTIONS IA (cube ID1) - pas de blocs WonderCam visibles
+    // ACTIONS IA (cube) - depend de "Update and get results" fait par l'eleve
     // =========================================================
 
     //% group="Actions IA"
@@ -364,26 +322,11 @@ namespace aihandler {
     //% block="cube ID detecte fiable"
     export function cubeDetecteFiable(): boolean {
         initCameraInterne()
-        if (cubeCentre()) {
-            compteurDetection += 1
-        } else {
-            compteurDetection = 0
-        }
+        if (cubeCentre()) compteurDetection += 1
+        else compteurDetection = 0
         return compteurDetection >= validations
     }
 
-    //% group="Actions IA"
-    //% blockId=aihandler_approcher_cube
-    //% block="approcher le cube ID"
-    export function approcherCube(): void {
-        initCameraInterne()
-        // avance en suivant la ligne jusqu'a distance Y
-        while (wondercam.isDetectedColorId(idCouleur) && (lireYCouleur() < yApproche)) {
-            mettreAJour()
-            suivreLigne()
-        }
-        arreter()
-    }
     //% group="Actions IA"
     //% blockId=aihandler_recentrer_cube
     //% block="recentrer le cube ID"
@@ -391,50 +334,33 @@ namespace aihandler {
         initCameraInterne()
         while (wondercam.isDetectedColorId(idCouleur)) {
             let x = lireXCouleur()
-
-            if (x < xMin) {
-                tournerGauche(vPetit)
-            } else if (x > xMax) {
-                tournerDroite(vPetit)
-            } else {
-                arreter()
-                break
-            }
+            if (x < xMin) tournerGauche(vPetit)
+            else if (x > xMax) tournerDroite(vPetit)
+            else { arreter(); break }
             basic.pause(40)
-            majCameraInterne()
         }
         arreter()
     }
+
     //% group="Actions IA"
     //% blockId=aihandler_chercher_cube
     //% block="chercher le cube ID"
     export function chercherCube(): void {
         initCameraInterne()
 
-        // balayage droite
         for (let i = 0; i < 20; i++) {
             tournerDroite(vPetit)
             basic.pause(80)
-            majCameraInterne()
-            if (wondercam.isDetectedColorId(idCouleur)) {
-                arreter()
-                return
-            }
+            if (wondercam.isDetectedColorId(idCouleur)) { arreter(); return }
         }
-
-        // balayage gauche
         for (let i = 0; i < 40; i++) {
             tournerGauche(vPetit)
             basic.pause(80)
-            majCameraInterne()
-            if (wondercam.isDetectedColorId(idCouleur)) {
-                arreter()
-                return
-            }
+            if (wondercam.isDetectedColorId(idCouleur)) { arreter(); return }
         }
-
         arreter()
     }
+
     //% group="Actions IA"
     //% blockId=aihandler_aller_vers_cube
     //% block="aller vers le cube ID"
@@ -445,41 +371,29 @@ namespace aihandler {
             let x = lireXCouleur()
             let y = lireYCouleur()
 
-            // recentrage
-            if (x < xMin) {
-                tournerGauche(vPetit)
-            } else if (x > xMax) {
-                tournerDroite(vPetit)
-            } 
-            // approche
-            else if (y < yApproche) {
-                avancer(vCorrection)
-            } 
-            // assez proche
-            else {
-                arreter()
-                break
-            }
+            if (x < xMin) tournerGauche(vPetit)
+            else if (x > xMax) tournerDroite(vPetit)
+            else if (y < yApproche) avancer(vCorrection)
+            else { arreter(); break }
 
             basic.pause(40)
-            majCameraInterne()
         }
         arreter()
     }
 
     // =========================================================
-    // CYCLE COMPLET (simple et utile)
+    // CYCLE COMPLET : l'eleve DOIT faire WonderCam "Update and get results" avant d'appeler cycle()
     // =========================================================
 
     //% group="Cycle complet"
     //% blockId=aihandler_cycle
-    //% block="cycle AI Handler"
+    //% block="cycle AI Hanter"
     export function cycle(): void {
-        mettreAJour()
+        mettreAJourLigne()
         suivreLigne()
 
         if (!porteObjet && cubeDetecteFiable()) {
-            approcherCube()
+            allerVersCube()
             attraperObjet()
             compteurDetection = 0
         }
