@@ -35,7 +35,6 @@ namespace aihandler {
     let servoPince = 6
     let porteObjet = false
 
-    // Angles (valeurs validées avec ton code)
     let brasHaut = -60
     let brasBas = -5
     let pinceOuverte = 15
@@ -44,7 +43,7 @@ namespace aihandler {
     // =========================================================
     // OUTILS MOTEURS (internes)
     // =========================================================
-    function avancerInterne(v: number): void {
+    function toutDroit(v: number): void {
         dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
         dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
         dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
@@ -58,16 +57,23 @@ namespace aihandler {
         dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
     }
 
-    function gaucheInterne(v: number): void {
-        // rotation gauche sur place
-        dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
+    // ✅ CORRECTION FLUIDE (tes formules)
+    function correctionDroite(v: number): void {
+        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v / 2)
+        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v / 2)
+    }
+
+    function correctionGauche(v: number): void {
+        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v / 2)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v / 2)
         dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, v)
         dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v)
     }
 
-    function droiteInterne(v: number): void {
-        // rotation droite sur place
+    // ✅ ROTATION SUR PLACE (utile seulement pour demi-tour)
+    function rotationSurPlaceDroite(v: number): void {
         dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
         dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
         dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
@@ -84,7 +90,6 @@ namespace aihandler {
     // =========================================================
     // INITIALISATION
     // =========================================================
-
     //% group="Initialisation"
     //% blockId=aihanter_init
     //% block="initialiser AI Hanter ID %id bras %bras pince %pince"
@@ -112,7 +117,6 @@ namespace aihandler {
     // =========================================================
     // RÉGLAGES IA
     // =========================================================
-
     //% group="Réglages IA"
     //% blockId=aihanter_set_x
     //% block="regler centrage X min %xmin max %xmax"
@@ -142,7 +146,6 @@ namespace aihandler {
     // =========================================================
     // CAPTEURS LIGNE
     // =========================================================
-
     //% group="Capteurs ligne"
     //% blockId=aihanter_update_line
     //% block="mettre a jour ligne"
@@ -161,17 +164,13 @@ namespace aihandler {
     }
 
     // =========================================================
-    // MOUVEMENTS (blocs demandés)
+    // MOUVEMENTS
     // =========================================================
-
     //% group="Mouvements"
     //% blockId=aihanter_stop
     //% block="arreter"
     export function arreter(): void {
-        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, 0)
-    dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, 0)
-    dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise,0)
-    dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, 0)
+        stopInterne()
     }
 
     //% group="Mouvements"
@@ -179,10 +178,7 @@ namespace aihandler {
     //% block="avancer vitesse %v"
     //% v.defl=80
     export function avancer(v: number = 80): void {
-       dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v)
+        toutDroit(v)
     }
 
     //% group="Mouvements"
@@ -190,64 +186,64 @@ namespace aihandler {
     //% block="reculer vitesse %v"
     //% v.defl=55
     export function reculer(v: number = 55): void {
-        dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, v)
+        reculerInterne(v)
     }
 
+    // ✅ ce sont des corrections (pas rotation sur place)
     //% group="Mouvements"
     //% blockId=aihanter_left
-    //% block="tourner a gauche vitesse %v"
+    //% block="tourner a gauche (correction) vitesse %v"
     //% v.defl=44
     export function tournerGauche(v: number = 44): void {
-        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v / 2)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v / 2)
-        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v
+        correctionGauche(v)
     }
 
     //% group="Mouvements"
     //% blockId=aihanter_right
-    //% block="tourner a droite vitesse %v"
+    //% block="tourner a droite (correction) vitesse %v"
     //% v.defl=44
     export function tournerDroite(v: number = 44): void {
-        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v/2)
-        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v/2)
+        correctionDroite(v)
     }
 
     // =========================================================
-    // SUIVI DE LIGNE
+    // SUIVI DE LIGNE (fluide inégale)
     // =========================================================
-
     //% group="Suivi de ligne"
     //% blockId=aihanter_follow_line
-    //% block="suivre la ligne"
+    //% block="suivre la ligne (fluide)"
     export function suivreLigne(): void {
         // L'élève doit appeler "mettre a jour ligne" avant
 
         if (s2 && s3) {
-            avancerInterne(vToutDroit)
+            toutDroit(vToutDroit)
 
         } else if (s1 && s2 && (!s3 && !s4)) {
-            gaucheInterne(vCorrection)
+            correctionGauche(vCorrection)
 
         } else if (s3 && s4 && (!s1 && !s2)) {
-            droiteInterne(vCorrection)
+            correctionDroite(vCorrection)
 
         } else if (s2 && (!s1 && !s3 && !s4)) {
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vCorrection)
-            dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vPetit)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vCorrection)
+            dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vPetit)
             dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vPetit)
 
         } else if (s3 && (!s1 && !s2 && !s4)) {
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vPetit)
-            dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vCorrection)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vPetit)
+            dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vCorrection)
             dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vCorrection)
+
+        } else if (s1 && (!s2 && !s3 && !s4)) {
+            correctionGauche(vToutDroit)
+
+        } else if (s4 && (!s1 && !s2 && !s3)) {
+            correctionDroite(vToutDroit)
+
+        } else if (!s1 && !s2 && !s3 && !s4) {
+            toutDroit(vPetit)
         }
     }
 
@@ -265,7 +261,7 @@ namespace aihandler {
 
         mettreAJourLigne()
         while (s1 || s2 || !(s3 && s4)) {
-            droiteInterne(v)
+            rotationSurPlaceDroite(v)
             mettreAJourLigne()
         }
         stopInterne()
@@ -274,7 +270,6 @@ namespace aihandler {
     // =========================================================
     // MANIPULATION
     // =========================================================
-
     //% group="Manipulation"
     //% blockId=aihanter_home_arm
     //% block="position depart bras"
@@ -334,7 +329,6 @@ namespace aihandler {
     // ACTIONS IA (WonderCam officielle)
     // L'élève doit faire : WonderCam -> Update and get results
     // =========================================================
-
     //% group="Actions IA"
     //% blockId=aihanter_cube_detected
     //% block="cube ID detecte"
@@ -364,12 +358,11 @@ namespace aihandler {
     //% blockId=aihanter_recenter_cube
     //% block="recentrer le cube ID"
     export function recentrerCube(): void {
-        // tourne doucement jusqu'à centrer
         while (cubeDetecte()) {
             let x = wondercam.XOfColorId(idCouleur)
 
-            if (x < xMin) gaucheInterne(vPetit)
-            else if (x > xMax) droiteInterne(vPetit)
+            if (x < xMin) correctionGauche(vPetit)
+            else if (x > xMax) correctionDroite(vPetit)
             else { stopInterne(); break }
 
             basic.pause(40)
@@ -381,14 +374,18 @@ namespace aihandler {
     //% blockId=aihanter_search_cube
     //% block="chercher le cube ID"
     export function chercherCube(): void {
-        // balayage simple (sans UpdateResult ici)
         for (let i = 0; i < 20; i++) {
-            droiteInterne(vPetit)
+            rotationSurPlaceDroite(vPetit)
             basic.pause(80)
             if (cubeDetecte()) { stopInterne(); return }
         }
         for (let i = 0; i < 40; i++) {
-            gaucheInterne(vPetit)
+            // rotation sur place gauche = on inverse en faisant 3 rotations droite + pause ?
+            // simple: rotation droite mais plus longue pour revenir (acceptable)
+            dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, vPetit)
+            dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vPetit)
+            dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, vPetit)
+            dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vPetit)
             basic.pause(80)
             if (cubeDetecte()) { stopInterne(); return }
         }
@@ -399,14 +396,13 @@ namespace aihandler {
     //% blockId=aihanter_go_to_cube
     //% block="aller vers le cube ID"
     export function allerVersCube(): void {
-        // avance tant que Y < seuil, en restant centré
         while (cubeDetecte()) {
             let x = wondercam.XOfColorId(idCouleur)
             let y = wondercam.YOfColorId(idCouleur)
 
-            if (x < xMin) gaucheInterne(vPetit)
-            else if (x > xMax) droiteInterne(vPetit)
-            else if (y < yApproche) avancerInterne(vCorrection)
+            if (x < xMin) correctionGauche(vPetit)
+            else if (x > xMax) correctionDroite(vPetit)
+            else if (y < yApproche) toutDroit(vCorrection)
             else { stopInterne(); break }
 
             basic.pause(40)
@@ -415,10 +411,9 @@ namespace aihandler {
     }
 
     // =========================================================
-    // CYCLE COMPLET (Certified)
-    // IMPORTANT : l'élève doit appeler WonderCam "Update and get results" AVANT cycle()
+    // CYCLE COMPLET
+    // IMPORTANT : WonderCam "Update and get results" AVANT cycle()
     // =========================================================
-
     //% group="Cycle complet"
     //% blockId=aihanter_cycle
     //% block="cycle AI Hanter"
