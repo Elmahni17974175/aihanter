@@ -214,8 +214,8 @@ namespace aihandler {
     export function tournerDroite(v: number = 44): void {
         dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
         dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v/2)
+        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v/2)
     }
 
     // =========================================================
