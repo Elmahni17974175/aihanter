@@ -1,6 +1,6 @@
 {
   "name": "aihanter",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "AI Hanter: line follow + grab/drop + u-turn (no camera).",
   "license": "MIT",
   "dependencies": {
