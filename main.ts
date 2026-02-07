@@ -168,7 +168,10 @@ namespace aihandler {
     //% blockId=aihanter_stop
     //% block="arreter"
     export function arreter(): void {
-        stopInterne()
+        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, 0)
+    dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, 0)
+    dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise,0)
+    dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, 0)
     }
 
     //% group="Mouvements"
@@ -176,7 +179,10 @@ namespace aihandler {
     //% block="avancer vitesse %v"
     //% v.defl=80
     export function avancer(v: number = 80): void {
-        avancerInterne(v)
+       dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v)
     }
 
     //% group="Mouvements"
@@ -184,7 +190,10 @@ namespace aihandler {
     //% block="reculer vitesse %v"
     //% v.defl=55
     export function reculer(v: number = 55): void {
-        reculerInterne(v)
+        dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
+        dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, v)
     }
 
     //% group="Mouvements"
@@ -192,7 +201,10 @@ namespace aihandler {
     //% block="tourner a gauche vitesse %v"
     //% v.defl=44
     export function tournerGauche(v: number = 44): void {
-        gaucheInterne(v)
+        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v / 2)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v / 2)
+        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
+        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v
     }
 
     //% group="Mouvements"
@@ -200,7 +212,10 @@ namespace aihandler {
     //% block="tourner a droite vitesse %v"
     //% v.defl=44
     export function tournerDroite(v: number = 44): void {
-        droiteInterne(v)
+        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v)
     }
 
     // =========================================================
