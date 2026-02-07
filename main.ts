@@ -209,7 +209,10 @@ namespace aihandler {
     //% block="tourner gauche vitesse %v"
     //% v.defl=44
     export function tournerGaucheBloc(v: number): void {
-        tournerGauche(v)
+        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v / 2)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v / 2)
+        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
+        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v)
     }
 
     //% group="Mouvements simples"
@@ -217,7 +220,10 @@ namespace aihandler {
     //% block="tourner droite vitesse %v"
     //% v.defl=44
     export function tournerDroiteBloc(v: number): void {
-        tournerDroite(v)
+        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v / 2)
+        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v / 2)
     }
     // =========================================================
     // MOUVEMENTS AVANCES
