@@ -1,6 +1,6 @@
-//% color=#00bcd4 icon="\uf1b9" block="AI Hanter 
+//% color=#00bcd4 icon="\uf1b9" block="AI Hanter"
 //% groups='["Initialisation","Reglages","Capteurs ligne","Mouvements","Suivi de ligne","Manipulation","Macros (sans camera)","Cycle"]'
-namespace aihandler { 
+namespace aihandler {
 
     // =========================================================
     // CAPTEURS LIGNE (4 capteurs)
@@ -22,8 +22,6 @@ namespace aihandler {
     // =========================================================
     let servoBras = 5
     let servoPince = 6
-
-    // Etat interne (sans camera)
     let porteObjet = false
 
     // Angles (a adapter selon montage)
@@ -56,6 +54,7 @@ namespace aihandler {
         dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
     }
 
+    // Rotation sur place (utile demi-tour)
     function rotationSurPlaceDroiteInterne(v: number): void {
         dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
         dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
@@ -79,6 +78,9 @@ namespace aihandler {
         arreterInterne()
     }
 
+    // =========================================================
+    // REGLAGES
+    // =========================================================
     //% group="Reglages"
     //% blockId=aihanter_regler_vitesses
     //% block="regler vitesses suivi tout droit %vd correction %vc petit %vp"
@@ -275,23 +277,8 @@ namespace aihandler {
     }
 
     // =========================================================
-    // MACROS (SANS CAMERA) - pour simplifier le code eleve
+    // MACROS (sans camera)
     // =========================================================
-
-    //% group="Macros (sans camera)"
-    //% blockId=aihanter_marquer_objet_porte
-    //% block="definir porte objet %etat"
-    export function definirPorteObjet(etat: boolean): void {
-        porteObjet = etat
-    }
-
-    //% group="Macros (sans camera)"
-    //% blockId=aihanter_objet_est_porte
-    //% block="objet est porte"
-    export function objetEstPorte(): boolean {
-        return porteObjet
-    }
-
     //% group="Macros (sans camera)"
     //% blockId=aihanter_bip_validation
     //% block="bip validation"
@@ -304,6 +291,9 @@ namespace aihandler {
     //% block="si destination alors deposer puis demi tour vitesse %v"
     //% v.defl=44
     export function gererDestinationSansCamera(v: number = 44): void {
+        // securite: mise a jour capteurs avant decision
+        mettreAJourLigne()
+
         if (arriveDestination()) {
             if (porteObjet) {
                 deposerObjet()
@@ -311,30 +301,6 @@ namespace aihandler {
             demiTour(v)
         }
     }
-// =========================================================
-// MACRO : GERER DESTINATION (SANS CAMERA)
-// =========================================================
-
-//% group="Macros (sans camera)"
-//% blockId=aihanter_gerer_destination_sans_camera
-//% block="si destination alors deposer puis demi tour vitesse %v"
- //% v.defl=44
-export function gererDestinationSansCamera(v: number = 44): void {
-    // Mettre a jour les capteurs de ligne
-    mettreAJourLigne()
-
-    // Si on est sur la zone destination
-    if (arriveDestination()) {
-
-        // Si le robot porte un objet, il le depose
-        if (porteObjet) {
-            deposerObjet()
-        }
-
-        // Demi-tour pour reprendre la ligne
-        demiTour(v)
-    }
-}
 
     // =========================================================
     // CYCLE (sans camera)
