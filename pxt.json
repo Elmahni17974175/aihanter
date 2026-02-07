@@ -1,14 +1,16 @@
 {
-  "name": "ai-handler-extension",
+  "name": "ai-hanter",
   "version": "0.1.16",
-  "description": "AI Handler: mouvements + suivi ligne + fonctions camera via dependance dadabit.",
+  "description": "AI Hanter (DaDa:bit) : suivi de ligne + IA cube couleur (WonderCam officielle) + attraper/deposer + demi-tour. Certified JS<->Blocks.",
   "dependencies": {
     "core": "*",
+    "radio": "*",
     "dadabit": "github:Hiwonder/dadabit"
   },
   "files": [
     "main.ts"
   ],
+  "testFiles": [],
   "public": true,
   "license": "MIT"
 }
