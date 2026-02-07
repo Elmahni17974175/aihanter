@@ -1,7 +1,7 @@
 {
   "name": "aihanter",
-  "version": "0.0.1",
-  "description": "AI Hanter base extension (no camera).",
+  "version": "0.0.3",
+  "description": "AI Hanter: line follow + grab/drop + u-turn (no camera).",
   "license": "MIT",
   "dependencies": {
     "core": "*",
