@@ -204,6 +204,21 @@ namespace aihandler {
         dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
     }
 
+    //% group="Mouvements simples"
+    //% blockId=aihandler_tourner_gauche
+    //% block="tourner gauche vitesse %v"
+    //% v.defl=44
+    export function tournerGaucheBloc(v: number): void {
+        tournerGauche(v)
+    }
+
+    //% group="Mouvements simples"
+    //% blockId=aihandler_tourner_droite
+    //% block="tourner droite vitesse %v"
+    //% v.defl=44
+    export function tournerDroiteBloc(v: number): void {
+        tournerDroite(v)
+    }
     // =========================================================
     // MOUVEMENTS AVANCES
     // =========================================================
