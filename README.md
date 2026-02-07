@@ -1,66 +1,26 @@
-# AI Handler – Extension MakeCode (DaDa:bit + WonderCam)
+# AI Hanter – Certified (MakeCode Extension)
 
-Cette extension permet de réaliser le projet **AI Handler** :
-- Suivi de ligne (ligne noire sur fond clair)
-- Détection de couleur (ID) via WonderCam
-- Approche + prise de l’objet
-- Transport jusqu’à destination
-- Dépôt + demi-tour + reprise
+Extension MakeCode pour DaDa:bit :
+- Suivi de ligne (4 capteurs)
+- Détection cube couleur (WonderCam officielle)
+- Approche + prise + dépôt + demi-tour
+- Conversion JavaScript ⇄ Blocs stable
 
-## Blocs (résumé)
-### Initialisation
-- initialiser AI Handler (couleur ID, servo bras, servo pince)
+## Dépendances
+- dadabit (qui inclut WonderCam)
 
-### Réglages
-- régler vision (X min/max, Y approche, validations)
-- régler vitesses (tout droit, correction, petit ajustement)
+## Utilisation (Blocs)
+### Au démarrage
+- AI Hanter → initialiser AI Hanter ID 1 bras 5 pince 6
+- AI Hanter → regler vitesses suivi (55,44,33)
+- AI Hanter → regler centrage X (80,240)
+- AI Hanter → regler distance approche Y (237)
+- AI Hanter → regler stabilite detection (8)
+- WonderCam → Initialize WonderCam at 0x32
+- WonderCam → Switch to Color detection
 
-### Capteurs
-- mettre à jour (caméra + ligne)
-- arrivé à destination ?
-- porte un objet ?
+### Toujours
+1) WonderCam → Update and get results  
+2) AI Hanter → cycle AI Hanter
 
-### Mouvements simples (paramétrés)
-- avancer vitesse
-- reculer vitesse
-- tourner à gauche vitesse
-- tourner à droite vitesse
-- trouver la ligne noire vitesse
-- arrêter le robot
-
-### Mouvements avancés (Option B)
-- suivre la ligne (tout droit / correction / petit ajustement)
-- suivre la ligne (vitesses réglées)
-- faire demi-tour vitesse
-
-### Vision / Manipulation
-- couleur ID détectée de façon fiable ?
-- approcher l’objet détecté
-- attraper l’objet
-- déposer l’objet
-
-### Cycle complet
-- cycle AI Handler (1 tour)
-
-## Exemple élève (mode facile)
-**Au démarrage**
-- initialiser AI Handler (couleur ID 1, servo bras 5, servo pince 6)
-
-**Toujours**
-- cycle AI Handler (1 tour)
-
-## Exemple élève (mode pédagogique)
-**Au démarrage**
-- initialiser AI Handler
-- régler vision
-- régler vitesses
-
-**Toujours**
-- mettre à jour (caméra + ligne)
-- suivre la ligne (vitesses réglées)
-- si (porte un objet ? = non) et (couleur ID détectée de façon fiable ? = oui) :
-  - approcher l’objet détecté
-  - attraper l’objet
-- si (porte un objet ? = oui) et (arrivé à destination ? = oui) :
-  - déposer l’objet
-  - faire demi-tour vitesse 44
+> Note : AI Hanter ne fait pas UpdateResult() pour rester compatible avec la WonderCam officielle.
