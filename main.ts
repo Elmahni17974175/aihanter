@@ -384,6 +384,88 @@ namespace aihandler {
         }
         arreter()
     }
+    //% group="Actions IA"
+    //% blockId=aihandler_recentrer_cube
+    //% block="recentrer le cube ID"
+    export function recentrerCube(): void {
+        initCameraInterne()
+        while (wondercam.isDetectedColorId(idCouleur)) {
+            let x = lireXCouleur()
+
+            if (x < xMin) {
+                tournerGauche(vPetit)
+            } else if (x > xMax) {
+                tournerDroite(vPetit)
+            } else {
+                arreter()
+                break
+            }
+            basic.pause(40)
+            majCameraInterne()
+        }
+        arreter()
+    }
+    //% group="Actions IA"
+    //% blockId=aihandler_chercher_cube
+    //% block="chercher le cube ID"
+    export function chercherCube(): void {
+        initCameraInterne()
+
+        // balayage droite
+        for (let i = 0; i < 20; i++) {
+            tournerDroite(vPetit)
+            basic.pause(80)
+            majCameraInterne()
+            if (wondercam.isDetectedColorId(idCouleur)) {
+                arreter()
+                return
+            }
+        }
+
+        // balayage gauche
+        for (let i = 0; i < 40; i++) {
+            tournerGauche(vPetit)
+            basic.pause(80)
+            majCameraInterne()
+            if (wondercam.isDetectedColorId(idCouleur)) {
+                arreter()
+                return
+            }
+        }
+
+        arreter()
+    }
+    //% group="Actions IA"
+    //% blockId=aihandler_aller_vers_cube
+    //% block="aller vers le cube ID"
+    export function allerVersCube(): void {
+        initCameraInterne()
+
+        while (wondercam.isDetectedColorId(idCouleur)) {
+            let x = lireXCouleur()
+            let y = lireYCouleur()
+
+            // recentrage
+            if (x < xMin) {
+                tournerGauche(vPetit)
+            } else if (x > xMax) {
+                tournerDroite(vPetit)
+            } 
+            // approche
+            else if (y < yApproche) {
+                avancer(vCorrection)
+            } 
+            // assez proche
+            else {
+                arreter()
+                break
+            }
+
+            basic.pause(40)
+            majCameraInterne()
+        }
+        arreter()
+    }
 
     // =========================================================
     // CYCLE COMPLET (simple et utile)
