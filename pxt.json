@@ -1,16 +1,15 @@
 {
   "name": "aihanter",
-  "version": "0.1.26",
-  "description": "AI Hanter (DaDa:bit) : suivi de ligne + IA cube couleur (WonderCam officielle) + attraper/deposer + demi-tour.",
+  "version": "0.0.1",
+  "description": "AI Hanter base extension (no camera).",
+  "license": "MIT",
   "dependencies": {
     "core": "*",
-    "radio": "*",
-    "dadabit": "github:Hiwonder/dadabit",
-    
+    "dadabit": "github:Hiwonder/dadabit"
   },
   "files": [
     "main.ts"
   ],
-  "public": true,
-  "license": "MIT"
+  "testFiles": [],
+  "public": true
 }
