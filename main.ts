@@ -1,6 +1,6 @@
 //% color=#00bcd4 icon="\uf1b9" block="AI Hanter 
 //% groups='["Initialisation","Reglages","Capteurs ligne","Mouvements","Suivi de ligne","Manipulation","Macros (sans camera)","Cycle"]'
-namespace aihandler {
+namespace aihandler { 
 
     // =========================================================
     // CAPTEURS LIGNE (4 capteurs)
