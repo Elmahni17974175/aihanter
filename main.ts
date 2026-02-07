@@ -2,109 +2,114 @@
 namespace aihandler {
 
     // ===============================
-    // ETAT LIGNE (4 capteurs)
+    // LINE SENSORS (4)
     // ===============================
-    let s1 = false 
+    let s1 = false
     let s2 = false
     let s3 = false
     let s4 = false
 
     // ===============================
-    // VITESSES
+    // SPEEDS (defaults)
     // ===============================
-    let vToutDroit = 55
-    let vCorrection = 44
-    let vPetit = 33
-
-    // ===============================
-    // SERVOS (bras/pince)
-    // ===============================
-    let servoBras = 5
-    let servoPince = 6
-    let porteObjet = false
-
-    let brasHaut = -60
-    let brasBas = -5
-    let pinceOuverte = 15
-    let pinceFermee = -25
+    let vStraight = 55
+    let vCorrect = 44
+    let vSmall = 33
 
     // ===============================
-    // OUTILS MOTEURS (internes)
+    // ARM / GRIPPER
     // ===============================
-    function toutDroit(v: number): void {
-        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v)
-    }
+    let servoArm = 5
+    let servoGrip = 6
+    let hasObj = false
 
-    function reculerInterne(v: number): void {
-        dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
-    }
+    let armUp = -60
+    let armDown = -5
+    let gripOpen = 15
+    let gripClose = -25
 
-    function correctionGauche(v: number): void {
-        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v / 2)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v / 2)
-        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v)
-    }
-
-    function correctionDroite(v: number): void {
-        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v / 2)
-        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v / 2)
-    }
-
-    // rotation sur place (moteurs opposes) : plus fiable
-    function spinDroite(v: number): void {
-        dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
-        dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, v)
-        dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
-    }
-
-    function stopInterne(): void {
+    // ===============================
+    // INTERNAL MOTOR HELPERS
+    // ===============================
+    function motorsStop(): void {
         dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, 0)
         dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, 0)
         dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, 0)
         dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, 0)
     }
 
+    function forwardInternal(v: number): void {
+        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v)
+    }
+
+    function backwardInternal(v: number): void {
+        dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
+        dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, v)
+        dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
+    }
+
+    function correctLeftInternal(v: number): void {
+        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v / 2)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v / 2)
+        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v)
+        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v)
+    }
+
+    function correctRightInternal(v: number): void {
+        dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, v / 2)
+        dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, v / 2)
+    }
+
+    function spinRightInternal(v: number): void {
+        dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, v)
+        dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
+        dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, v)
+        dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
+    }
+
     // ===============================
-    // INITIALISATION
+    // INIT
     // ===============================
     //% group="Init"
     //% blockId=aihanter_init
-    //% block="aihanter init bras %bras pince %pince"
-    export function init(bras: number = 5, pince: number = 6): void {
+    //% block="aihanter init arm %arm grip %grip"
+    //% arm.defl=5 grip.defl=6
+    export function init(arm: number = 5, grip: number = 6): void {
         dadabit.dadabit_init()
-        servoBras = bras
-        servoPince = pince
-        porteObjet = false
-        positionDepartBras()
-        stopInterne()
+        servoArm = arm
+        servoGrip = grip
+        hasObj = false
+
+        // home
+        dadabit.setLego270Servo(servoArm, armUp, 300)
+        dadabit.setLego270Servo(servoGrip, gripOpen, 300)
+        basic.pause(300)
+
+        motorsStop()
     }
 
     //% group="Init"
     //% blockId=aihanter_set_speeds
-    //% block="set speeds straight %vd correction %vc small %vp"
-    //% vd.defl=55 vc.defl=44 vp.defl=33
-    export function setSpeeds(vd: number = 55, vc: number = 44, vp: number = 33): void {
-        vToutDroit = vd
-        vCorrection = vc
-        vPetit = vp
+    //% block="set follow speeds straight %s correct %c small %m"
+    //% s.defl=55 c.defl=44 m.defl=33
+    export function setFollowSpeeds(s: number = 55, c: number = 44, m: number = 33): void {
+        vStraight = s
+        vCorrect = c
+        vSmall = m
     }
 
     // ===============================
-    // LIGNE (capteurs)
+    // 1) LINE FOLLOW BLOCKS
     // ===============================
     //% group="Line"
     //% blockId=aihanter_update_line
-    //% block="update line sensors"
+    //% block="update line"
     export function updateLine(): void {
         s1 = dadabit.line_followers(dadabit.LineFollowerSensors.S1, dadabit.LineColor.Black)
         s2 = dadabit.line_followers(dadabit.LineFollowerSensors.S2, dadabit.LineColor.Black)
@@ -119,185 +124,175 @@ namespace aihandler {
         return (s1 && s2 && s3 && s4)
     }
 
-    // ===============================
-    // MOUVEMENTS
-    // ===============================
-    //% group="Move"
-    //% blockId=aihanter_stop
-    //% block="stop"
-    export function stop(): void {
-        stopInterne()
-    }
-
-    //% group="Move"
-    //% blockId=aihanter_forward
-    //% block="forward %v"
-    //% v.defl=55
-    export function forward(v: number = 55): void {
-        toutDroit(v)
-    }
-
-    //% group="Move"
-    //% blockId=aihanter_backward
-    //% block="backward %v"
-    //% v.defl=55
-    export function backward(v: number = 55): void {
-        reculerInterne(v)
-    }
-
-    //% group="Move"
-    //% blockId=aihanter_left
-    //% block="turn left (correction) %v"
-    //% v.defl=44
-    export function turnLeft(v: number = 44): void {
-        correctionGauche(v)
-    }
-
-    //% group="Move"
-    //% blockId=aihanter_right
-    //% block="turn right (correction) %v"
-    //% v.defl=44
-    export function turnRight(v: number = 44): void {
-        correctionDroite(v)
-    }
-
-    // ===============================
-    // SUIVI DE LIGNE (fluide 55/44/33)
-    // ===============================
     //% group="Follow"
     //% blockId=aihanter_follow_line
-    //% block="follow line (smooth)"
+    //% block="follow line"
     export function followLine(): void {
-        // L'utilisateur doit appeler updateLine() avant (ou utiliser cycle())
-
         if (s2 && s3) {
-            toutDroit(vToutDroit)
+            forwardInternal(vStraight)
 
         } else if (s1 && s2 && (!s3 && !s4)) {
-            correctionGauche(vCorrection)
+            correctLeftInternal(vCorrect)
 
         } else if (s3 && s4 && (!s1 && !s2)) {
-            correctionDroite(vCorrection)
+            correctRightInternal(vCorrect)
 
         } else if (s2 && (!s1 && !s3 && !s4)) {
-            // petit ajustement vers la gauche
-            dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vCorrection)
-            dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vCorrection)
-            dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vPetit)
-            dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vPetit)
+            // small adjust to left
+            dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vCorrect)
+            dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vCorrect)
+            dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vSmall)
+            dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vSmall)
 
         } else if (s3 && (!s1 && !s2 && !s4)) {
-            // petit ajustement vers la droite
-            dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vPetit)
-            dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vPetit)
-            dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vCorrection)
-            dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vCorrection)
+            // small adjust to right
+            dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, vSmall)
+            dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, vSmall)
+            dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, vCorrect)
+            dadabit.setLego360Servo(4, dadabit.Oriention.Clockwise, vCorrect)
 
         } else if (s1 && (!s2 && !s3 && !s4)) {
-            correctionGauche(vToutDroit)
+            correctLeftInternal(vStraight)
 
         } else if (s4 && (!s1 && !s2 && !s3)) {
-            correctionDroite(vToutDroit)
+            correctRightInternal(vStraight)
 
         } else if (!s1 && !s2 && !s3 && !s4) {
-            // perdu : avance lentement
-            toutDroit(vPetit)
+            // lost -> move slow
+            forwardInternal(vSmall)
         }
     }
 
     //% group="Follow"
     //% blockId=aihanter_u_turn
-    //% block="u turn %v"
+    //% block="u turn speed %v"
     //% v.defl=44
     export function uTurn(v: number = 44): void {
-        // rotation puis recherche de la ligne (mode reference)
-        spinDroite(v)
+        spinRightInternal(v)
         basic.pause(500)
 
         updateLine()
         while (s1 || s2 || !(s3 && s4)) {
-            // rotation continue (comme le JS reference: tous CCW)
+            // keep turning (reference style)
             dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
             dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
             dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
             dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, v)
             updateLine()
         }
-        stopInterne()
+        motorsStop()
     }
 
-    // ===============================
-    // MANIPULATION (bras/pince)
-    // ===============================
-    //% group="Arm"
-    //% blockId=aihanter_home_arm
-    //% block="arm home"
-    export function positionDepartBras(): void {
-        dadabit.setLego270Servo(servoBras, brasHaut, 300)
-        dadabit.setLego270Servo(servoPince, pinceOuverte, 300)
-        basic.pause(300)
-        porteObjet = false
-    }
-
-    //% group="Arm"
-    //% blockId=aihanter_grab
-    //% block="grab object"
-    export function grab(): void {
-        stopInterne()
-        basic.pause(200)
-
-        dadabit.setLego270Servo(servoBras, brasBas, 500)
-        basic.pause(400)
-
-        dadabit.setLego270Servo(servoPince, pinceFermee, 500)
-        basic.pause(400)
-
-        dadabit.setLego270Servo(servoBras, brasHaut, 500)
-        basic.pause(400)
-
-        porteObjet = true
-    }
-
-    //% group="Arm"
-    //% blockId=aihanter_drop
-    //% block="drop object"
-    export function drop(): void {
-        stopInterne()
-        basic.pause(200)
-
-        dadabit.setLego270Servo(servoBras, brasBas, 500)
-        basic.pause(400)
-
-        dadabit.setLego270Servo(servoPince, pinceOuverte, 500)
-        basic.pause(400)
-
-        dadabit.setLego270Servo(servoBras, brasHaut, 500)
-        basic.pause(400)
-
-        porteObjet = false
-    }
-
-    //% group="Arm"
-    //% blockId=aihanter_has_object
-    //% block="has object"
-    export function hasObject(): boolean {
-        return porteObjet
-    }
-
-    // ===============================
-    // CYCLE SANS CAMERA
-    // ===============================
-    //% group="Cycle"
+    //% group="Follow"
     //% blockId=aihanter_cycle_no_cam
     //% block="cycle no camera"
     export function cycleNoCamera(): void {
         updateLine()
         followLine()
 
-        // si on porte un objet et on arrive destination => deposer + demi-tour
-        if (porteObjet && isDestination()) {
+        if (hasObj && isDestination()) {
             drop()
-            uTurn(vCorrection)
+            uTurn(vCorrect)
         }
+    }
+
+    // ===============================
+    // 2) MOVE BLOCKS
+    // ===============================
+    //% group="Move"
+    //% blockId=aihanter_stop
+    //% block="stop"
+    export function stop(): void {
+        motorsStop()
+    }
+
+    //% group="Move"
+    //% blockId=aihanter_forward
+    //% block="forward speed %v"
+    //% v.defl=55
+    export function forward(v: number = 55): void {
+        forwardInternal(v)
+    }
+
+    //% group="Move"
+    //% blockId=aihanter_backward
+    //% block="backward speed %v"
+    //% v.defl=55
+    export function backward(v: number = 55): void {
+        backwardInternal(v)
+    }
+
+    //% group="Move"
+    //% blockId=aihanter_left
+    //% block="turn left speed %v"
+    //% v.defl=44
+    export function turnLeft(v: number = 44): void {
+        correctLeftInternal(v)
+    }
+
+    //% group="Move"
+    //% blockId=aihanter_right
+    //% block="turn right speed %v"
+    //% v.defl=44
+    export function turnRight(v: number = 44): void {
+        correctRightInternal(v)
+    }
+
+    // ===============================
+    // 3) ARM / GRIPPER BLOCKS
+    // ===============================
+    //% group="Arm"
+    //% blockId=aihanter_arm_home
+    //% block="arm home"
+    export function armHome(): void {
+        dadabit.setLego270Servo(servoArm, armUp, 300)
+        dadabit.setLego270Servo(servoGrip, gripOpen, 300)
+        basic.pause(300)
+        hasObj = false
+    }
+
+    //% group="Arm"
+    //% blockId=aihanter_grab
+    //% block="grab object"
+    export function grab(): void {
+        motorsStop()
+        basic.pause(200)
+
+        dadabit.setLego270Servo(servoArm, armDown, 500)
+        basic.pause(400)
+
+        dadabit.setLego270Servo(servoGrip, gripClose, 500)
+        basic.pause(400)
+
+        dadabit.setLego270Servo(servoArm, armUp, 500)
+        basic.pause(400)
+
+        hasObj = true
+    }
+
+    //% group="Arm"
+    //% blockId=aihanter_drop
+    //% block="drop object"
+    export function drop(): void {
+        motorsStop()
+        basic.pause(200)
+
+        dadabit.setLego270Servo(servoArm, armDown, 500)
+        basic.pause(400)
+
+        dadabit.setLego270Servo(servoGrip, gripOpen, 500)
+        basic.pause(400)
+
+        dadabit.setLego270Servo(servoArm, armUp, 500)
+        basic.pause(400)
+
+        hasObj = false
+    }
+
+    //% group="Arm"
+    //% blockId=aihanter_has_object
+    //% block="has object"
+    export function hasObject(): boolean {
+        return hasObj
     }
 }
