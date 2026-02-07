@@ -11,7 +11,7 @@ namespace aihandler {
     let capteur4 = false
 
     // =========================================================
-    // VITESSES (identiques au code qui marche)
+    // VITESSES (identiques au code original qui marche)
     // =========================================================
     let vToutDroit = 55
     let vCorrection = 44
@@ -29,27 +29,30 @@ namespace aihandler {
     let pinceFermee = -25
 
     // =========================================================
-    // ETAT (comme recognition_or_placement)
-    // porteObjet = true  => on a attrape l'objet
-    // porteObjet = false => mode detection / approche
+    // ETAT (equivalent recognition_or_placement)
+    // porteObjet = true  => objet attrape
+    // porteObjet = false => detection / approche
     // =========================================================
     let porteObjet = false
 
     // =========================================================
-    // CAMERA IA (via dadabit: namespace wondercam existe deja)
+    // CAMERA IA (via dadabit : wondercam est fourni par dadabit)
     // =========================================================
     let idCouleur = 1
     let xMin = 80
     let xMax = 240
     let yApproche = 237
+
+    // validations = nombre de frames consecutives requises
+    // (version pedagogique: validations=8 => 8 fois)
     let validations = 8
     let compteur = 0
 
     // =========================================================
-    // OUTILS MOTEURS (internes) - utilises par Actions
+    // OUTILS MOTEURS (internes)
     // =========================================================
     function arreterInterne(): void {
-        // Comme ton code : stop avec Clockwise 0 partout
+        // Stop (comme ton code)
         dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, 0)
         dadabit.setLego360Servo(2, dadabit.Oriention.Clockwise, 0)
         dadabit.setLego360Servo(3, dadabit.Oriention.Clockwise, 0)
@@ -57,7 +60,7 @@ namespace aihandler {
     }
 
     function rotationRechercheLigne(v: number): void {
-        // Comme destination() : tous Counterclockwise
+        // Comme destination(): tous Counterclockwise
         dadabit.setLego360Servo(1, dadabit.Oriention.Counterclockwise, v)
         dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, v)
         dadabit.setLego360Servo(3, dadabit.Oriention.Counterclockwise, v)
@@ -80,7 +83,7 @@ namespace aihandler {
         porteObjet = false
         compteur = 0
 
-        // Position depart (comme ton code)
+        // Position depart (comme ton code original)
         dadabit.setLego270Servo(servoBras, brasHaut, 300)
         dadabit.setLego270Servo(servoPince, pinceOuverte, 300)
         basic.pause(500)
@@ -90,7 +93,7 @@ namespace aihandler {
     //% blockId=aihanter_initialiser_camera
     //% block="initialiser camera (color detect)"
     export function initialiserCamera(): void {
-        // Comme ton code original (adresse x32)
+        // Comme ton code original : adresse x32
         wondercam.wondercam_init(wondercam.DEV_ADDR.x32)
         wondercam.ChangeFunc(wondercam.Functions.ColorDetect)
         compteur = 0
@@ -205,7 +208,7 @@ namespace aihandler {
     }
 
     // =========================================================
-    // CAMERA IA (blocs inspires du code original)
+    // CAMERA IA (blocs verifies et corriges)
     // =========================================================
     //% group="Camera IA"
     //% blockId=aihanter_camera_mettre_a_jour
@@ -226,6 +229,7 @@ namespace aihandler {
     //% block="objet ID centre"
     export function objetCentre(): boolean {
         if (!objetDetecte()) return false
+        // Signature identique au code original : XOfColorId(option, id)
         let x = wondercam.XOfColorId(wondercam.Options.Pos_X, idCouleur)
         return (x >= xMin && x <= xMax)
     }
@@ -234,10 +238,10 @@ namespace aihandler {
     //% blockId=aihanter_detection_stable
     //% block="detection stable"
     export function detectionStable(): boolean {
-        // Equivalent du next > validations
+        // Version pedagogique: validations=8 => 8 validations consecutives
         if (objetCentre()) compteur++
         else compteur = 0
-        return (compteur > validations)
+        return (compteur >= validations)
     }
 
     //% group="Camera IA"
@@ -251,12 +255,14 @@ namespace aihandler {
     //% blockId=aihanter_approcher_objet
     //% block="approcher objet jusqu a Y"
     export function approcherObjetJusquaY(): void {
-        // Copie du while original:
-        // while (Y < 237 && detected) { UpdateResult; update_line; general_line_following; }
+        // Plus robuste, mais fidele au while original
+        cameraMettreAJour()
+        mettreAJourLigne()
+
         while (wondercam.isDetectedColorId(idCouleur)
             && wondercam.YOfColorId(wondercam.Options.Pos_Y, idCouleur) < yApproche) {
 
-            wondercam.UpdateResult()
+            cameraMettreAJour()
             mettreAJourLigne()
             suivreLigne()
         }
@@ -264,7 +270,7 @@ namespace aihandler {
     }
 
     // =========================================================
-    // MANIPULATION (grasp / destination inspires du code original)
+    // MANIPULATION (grasp / drop, identique au code original)
     // =========================================================
     //% group="Manipulation"
     //% blockId=aihanter_position_depart_bras
@@ -322,22 +328,21 @@ namespace aihandler {
     }
 
     // =========================================================
-    // ACTIONS (destination() inspire du code original)
+    // ACTIONS (destination inspiree du code original)
     // =========================================================
     //% group="Actions"
     //% blockId=aihanter_action_destination
     //% block="action destination (deposer + retour)"
     export function actionDestination(): void {
-        // stop
         arreterInterne()
         basic.pause(500)
 
-        // deposer si on porte
+        // deposer uniquement si on porte
         if (porteObjet) {
             deposerObjet()
         }
 
-        // petit pivot comme l'original (Clockwise / Counterclockwise mix)
+        // pivot comme l'original (500 ms)
         mettreAJourLigne()
         dadabit.setLego360Servo(1, dadabit.Oriention.Clockwise, vCorrection)
         dadabit.setLego360Servo(2, dadabit.Oriention.Counterclockwise, vCorrection)
@@ -345,7 +350,7 @@ namespace aihandler {
         dadabit.setLego360Servo(4, dadabit.Oriention.Counterclockwise, vCorrection)
         basic.pause(500)
 
-        // recherche de la ligne (while Sensor1 || Sensor2 || !(Sensor3 && Sensor4))
+        // recherche ligne (original)
         mettreAJourLigne()
         while (capteur1 || capteur2 || !(capteur3 && capteur4)) {
             rotationRechercheLigne(vCorrection)
@@ -359,14 +364,14 @@ namespace aihandler {
     //% blockId=aihanter_detecter_puis_approcher
     //% block="detecter puis approcher"
     export function detecterPuisApprocher(): boolean {
-        // Inspire du if original + next>8
-        // Retourne true si on est arrive proche de l'objet (pret a attraper)
+        // Inspire du code original:
+        // if (!porteObjet && detected && X dans [xmin,xmax]) { next++ ; if next>8 => approche + grasp }
         cameraMettreAJour()
         mettreAJourLigne()
 
         if (!porteObjet && objetDetecte() && objetCentre()) {
             compteur++
-            if (compteur > validations) {
+            if (compteur >= validations) {
                 compteur = 0
                 approcherObjetJusquaY()
                 return true
@@ -378,22 +383,20 @@ namespace aihandler {
     }
 
     // =========================================================
-    // CYCLE COMPLET (inspire du basic.forever original)
+    // CYCLE COMPLET (ligne + camera) - inspire du basic.forever
     // =========================================================
     //% group="Cycle"
     //% blockId=aihanter_cycle_complet
     //% block="cycle complet (ligne + camera)"
     export function cycleComplet(): void {
-        // 1) mise a jour camera et ligne
-        wondercam.UpdateResult()
+        cameraMettreAJour()
         mettreAJourLigne()
 
-        // 2) si pas d'objet et detection stable -> approcher + attraper
+        // 1) detection stable => approche + attraper
         if (!porteObjet && objetDetecte() && objetCentre()) {
             compteur++
-            if (compteur > validations) {
+            if (compteur >= validations) {
                 compteur = 0
-                // approche sur ligne, comme le code original
                 approcherObjetJusquaY()
                 attraperObjet()
             }
@@ -401,7 +404,7 @@ namespace aihandler {
             compteur = 0
         }
 
-        // 3) destination
+        // 2) destination => deposer + retour
         if (arriveDestination()) {
             actionDestination()
         } else {
