@@ -311,6 +311,30 @@ namespace aihandler {
             demiTour(v)
         }
     }
+// =========================================================
+// MACRO : GERER DESTINATION (SANS CAMERA)
+// =========================================================
+
+//% group="Macros (sans camera)"
+//% blockId=aihanter_gerer_destination_sans_camera
+//% block="si destination alors deposer puis demi tour vitesse %v"
+ //% v.defl=44
+export function gererDestinationSansCamera(v: number = 44): void {
+    // Mettre a jour les capteurs de ligne
+    mettreAJourLigne()
+
+    // Si on est sur la zone destination
+    if (arriveDestination()) {
+
+        // Si le robot porte un objet, il le depose
+        if (porteObjet) {
+            deposerObjet()
+        }
+
+        // Demi-tour pour reprendre la ligne
+        demiTour(v)
+    }
+}
 
     // =========================================================
     // CYCLE (sans camera)
