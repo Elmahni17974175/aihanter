@@ -1,6 +1,6 @@
 {
   "name": "ai-hanter",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "AI Hanter (DaDa:bit) : suivi de ligne + IA cube couleur (WonderCam officielle) + attraper/deposer + demi-tour. Certified JS<->Blocks.",
   "dependencies": {
     "core": "*",
