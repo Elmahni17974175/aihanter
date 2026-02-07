@@ -1,6 +1,6 @@
 {
   "name": "ai-handler-extension",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "AI Handler: mouvements + suivi ligne + fonctions camera via dependance dadabit.",
   "dependencies": {
     "core": "*",
