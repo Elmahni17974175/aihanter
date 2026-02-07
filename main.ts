@@ -1,4 +1,4 @@
-//% color=#00bcd4 icon="\uf1b9" block="AI Hanter"
+//% color=#00bcd4 icon="\uf1b9" block="AI Hanter" 
 //% groups='["Initialisation","Reglages","Capteurs ligne","Suivi de ligne","Camera IA","Manipulation","Actions","Cycle"]'
 namespace aihandler {
 
